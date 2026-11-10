@@ -23,8 +23,8 @@ def get_next_csv_path(run_type):
 
 
 
-def save_and_validate_results(image, csv_path, run_type, run_id, n_ranks, chunk_size, size, xlim, ylim, time_compute, time_comm, time_wait):
-    is_valid = validate_result(image, xlim, ylim)
+def save_and_validate_results(image, csv_path, run_type, run_id, n_ranks, chunk_size, time_compute, time_comm, time_wait):
+    is_valid = validate_result(image)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -57,7 +57,7 @@ def save_and_validate_results(image, csv_path, run_type, run_id, n_ranks, chunk_
 
 
 
-def validate_result(image, xlim, ylim):
+def validate_result(u, tol):
     """Validate the computed image and show a log."""
     is_valid = check_solution.is_resulting_image_correct(image, xlim, ylim)
         
