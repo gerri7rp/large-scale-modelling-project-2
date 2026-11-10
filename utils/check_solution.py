@@ -2,6 +2,11 @@ from PIL import Image
 from pathlib import Path
 import numpy as np
 
+def analytical_solution(x: np.ndarray,
+           y: np.ndarray,
+           z: np.ndarray) -> np.ndarray:
+    return np.sin(np.pi * x) * np.sin(np.pi * y) * np.sin(np.pi * z)
+
 
 
 def is_resulting_image_correct(image: np.array, xlim, ylim) -> bool:
