@@ -1,0 +1,7 @@
+.venv
+.DS_Store
+.python-version
+uv.lock
+*/__pycache__/
+plots/
+marius_playground.py
