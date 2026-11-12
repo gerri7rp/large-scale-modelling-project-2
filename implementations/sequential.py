@@ -46,6 +46,7 @@ def jacobi_step(u, d2f, N):
     return 1 / 6  * (u[0: N,1: N + 1, 1 : N + 1] + u[2: N+2,1: N + 1, 1 : N + 1] + u[1: N + 1, 0: N, 1 : N + 1] + u[1: N + 1, 2: N + 2, 1 : N + 1] + u[1: N + 1, 1: N + 1, 0 : N] + u[1: N + 1, 1: N + 1, 2: N + 2] + d2f)
 
 def set_bc(u):
+    print(f"shape of u in set_bc = {u.shape}", flush=True)
     u[0, :, :] = 0
     u[-1, :, :] = 0
     u[:, 0, :] = 0
