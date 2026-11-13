@@ -2,6 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
+from pathlib import Path
+
+
+def _savefig(title: str, kind: str) -> None:
+    """Save to results/plots/<prefix>/<kind>/<name>, where title = "<prefix>/<name>".
+    E.g. title="parallel/Jacobi N=300", kind="convergence"
+    -> results/plots/parallel/convergence/Jacobi N=300.png"""
+    title = Path(title)
+    path = Path("results/plots") / title.parent / kind / title.name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(path)
 
 try:
     from utils.check_solution import analytical_solution  # imported from repo root
@@ -28,7 +39,7 @@ def plot_convergence(convergence_hist: list[float],
         ax.set(**kwargs)
 
     fig.tight_layout()
-    plt.savefig(f"plots/{title}_convergence")
+    _savefig(title, "convergence")
 
 
 
@@ -70,11 +81,12 @@ def plot_slice_vs_analytical(u: np.ndarray,
     ax2.set_aspect("equal")
     fig.colorbar(im, ax=ax2, shrink=0.8, label="error")
 
-    if kwargs:
-        fig.suptitle(kwargs.pop("title", ""))
+    title = kwargs.pop("title", "slice_vs_analytical")
+    fig.suptitle(Path(title).name)
 
     fig.tight_layout()
-    plt.show()
+    _savefig(title, "solution")
+
 
 
 def plot_planes(grid: tuple[np.ndarray, np.ndarray, np.ndarray], 
@@ -103,7 +115,7 @@ def plot_planes(grid: tuple[np.ndarray, np.ndarray, np.ndarray],
     if kwargs:
         ax.set(**kwargs)
 
-    plt.savefig(f"plots/{title}_3d")
+    _savefig(title, "planes")
 
 
 if __name__ == "__main__":

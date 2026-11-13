@@ -12,10 +12,10 @@ def get_datatypes(arr: np.ndarray):
 
     # Left boundary
     left = MPI.DOUBLE.Create_subarray(
-        arr.shape, (1, Ny, Nz), (0, 0, 0), order=MPI.ORDER_C
+        arr.shape, (1, Ny, Nz), (1, 0, 0), order=MPI.ORDER_C
     )
     right = MPI.DOUBLE.Create_subarray(
-        arr.shape, (1, Ny, Nz), (Nx - 1, 0, 0), order=MPI.ORDER_C
+        arr.shape, (1, Ny, Nz), (Nx - 2, 0, 0), order=MPI.ORDER_C
     )
     # front = MPI.DOUBLE.Create_subarray(
     #     arr.shape, (Nx, 1, Nz), (0, 0, 0), order=MPI.ORDER_C
