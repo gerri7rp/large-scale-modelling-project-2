@@ -1,5 +1,5 @@
 import sys
-from time import time
+from time import time, perf_counter
 import numpy as np
 from mpi4py import MPI
 from pathlib import Path
@@ -88,6 +88,7 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
 
     convergence_hist = []
 
+    t0 = perf_counter() # Time
     for i in range(max_iter):
         # Get the edges
         u_curr[0,:,:], u_curr[-1,:,:] = sendrecv_sliceedges(rank=rank, size=size, u_curr_slice=u_curr, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=comm)
@@ -101,8 +102,15 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
 
         if diff < tolerance:
             break
+    time = perf_counter() - t0
+    n_iter = i + 1  # number of iterations
+    M = np.prod(u_new.shape)
+    n_flops_norm = M # this doesnt count abs as a flop
+    n_flops_jacobi = 7
+    flops = ((n_flops_jacobi * M + n_flops_norm) * n_iter) / time
+    lups = (M * n_iter) / time
 
-    return u_curr, convergence_hist, i
+    return u_curr, convergence_hist, i, flops, lups
 
 
     

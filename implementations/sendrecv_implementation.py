@@ -50,7 +50,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
     ############# JACOBI COMPUTATION #########################################################
     #######################################################################################
 
-    u_curr, convergence_hist, i = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=cart_comm)
+    u_curr, convergence_hist, i, flops, lups = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=cart_comm)
 
     LHS_dt.Free()
     RHS_dt.Free()
@@ -105,6 +105,6 @@ if __name__ == "__main__":
     PLOT = True
 
     # Set up data
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
     main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
 
