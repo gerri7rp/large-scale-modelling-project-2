@@ -1,5 +1,5 @@
 import sys
-from time import time
+from time import time, perf_counter
 import numpy as np
 from mpi4py import MPI
 from pathlib import Path
@@ -106,5 +106,7 @@ if __name__ == "__main__":
 
     # Set up data
     N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    t0 = perf_counter()
     main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
-
+    total_time = perf_counter() - t0
+    
