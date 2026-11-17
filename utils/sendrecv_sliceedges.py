@@ -18,87 +18,37 @@ def source(N, N_slice, slice_idx, rank, size):
     sin_yz = np.sin(np.pi * yz)
     return h ** 2 * 3 * np.pi ** 2 * sin_x[:, None, None] * sin_yz[None, :, None] * sin_yz[None, None, :]
 
+def send(to_rank, datatype, send_buf, comm):
+    if to_rank == MPI.PROC_NULL:
+        pass
+    else:
+        comm.Send([send_buf, 1, datatype], to_rank)
+
+def recv(from_rank, recv_buf, comm):
+    if from_rank == MPI.PROC_NULL:
+        pass
+    else:
+        comm.Recv(recv_buf, from_rank)
 
 def sendrecv_sliceedges(rank, size, u_curr_slice, LHS_dt, RHS_dt, comm):
     # Create recv buffer
     LHS_recv_buff, RHS_recv_buff = np.zeros_like(u_curr_slice[0,:,:]).astype(np.float64), np.zeros_like(u_curr_slice[-1,:,:]).astype(np.float64) # we need one for each side to save the data for the computation
+    left_rank, right_rank = comm.Shift(0,1)
 
-    # Start with even ranks
-    if rank%2 == 0: 
+    # even ranks
+    if rank%2 == 0:
+        send(right_rank, RHS_dt, u_curr_slice, comm)
+        send(left_rank, LHS_dt, u_curr_slice, comm)
+        recv(right_rank, RHS_recv_buff, comm)
+        recv(left_rank, LHS_recv_buff, comm)
 
-
-        # For the rightmost slice
-        if rank == size-1:
-            # Send to the right (no rank to send to)
-
-            # Send to the left
-            comm.Send([u_curr_slice, 1, LHS_dt], rank-1)
-
-            # Recv from the right (No rank to the right, so nothing to recieve. Border cond = 0, which recv_buff already is)
-
-            # Recv from the left
-            comm.Recv(LHS_recv_buff, rank-1) 
-        # For the leftmost slice
-        elif rank == 0: 
-            # Send to the right
-            comm.Send([u_curr_slice, 1, RHS_dt], rank+1)
-
-            # Send to the left(no rank to send to)
-
-            # Recv from the right
-            comm.Recv(RHS_recv_buff, rank+1) 
-
-            # Recv from the left (No rank to the left, so nothing to recieve. Border cond = 0, which recv_buff already is)
-        # For the rest
-        else: 
-            # Send to the right 
-            comm.Send([u_curr_slice, 1, RHS_dt], rank+1)
-
-            # Send to the left
-            comm.Send([u_curr_slice, 1, LHS_dt], rank-1)
-
-            # Recv from the right
-            comm.Recv(RHS_recv_buff, rank+1) 
-
-            # Recv from the left 
-            comm.Recv(LHS_recv_buff, rank-1) 
+    # odd ranks
     else:
-        # For the rightmost slice
-        if rank == size-1:
+        recv(left_rank, LHS_recv_buff, comm)
+        recv(right_rank, RHS_recv_buff, comm)
+        send(left_rank, LHS_dt, u_curr_slice, comm)
+        send(right_rank, RHS_dt, u_curr_slice, comm)
 
-            # Recv from the left
-            comm.Recv(LHS_recv_buff, rank-1) 
-
-            # Recv from the right
-
-            # Send to the left
-            comm.Send([u_curr_slice, 1, LHS_dt], rank-1)
-
-            # Send to the right 
-        # For the leftmost slice
-        elif rank == 0: 
-            # Recv from the left
-
-            # Recv from the right
-            comm.Recv(RHS_recv_buff, rank+1) 
-
-            # Send to the left
-
-            # Send to the right 
-            comm.Send([u_curr_slice, 1, RHS_dt], rank+1)
-        # For the rest
-        else: 
-            # Recv from the left
-            comm.Recv(LHS_recv_buff, rank-1) 
-
-            # Recv from the right
-            comm.Recv(RHS_recv_buff, rank+1) 
-
-            # Send to the left
-            comm.Send([u_curr_slice, 1, LHS_dt], rank-1)
-
-            # Send to the right 
-            comm.Send([u_curr_slice, 1, RHS_dt], rank+1)
     return LHS_recv_buff, RHS_recv_buff
 
 def init_slice(N_slice, N, INIT_VALUE, rank, size):

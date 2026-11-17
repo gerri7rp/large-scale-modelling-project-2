@@ -32,6 +32,10 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
     size = comm.size # total slices/ranks
     rank = comm.Get_rank()
 
+    # Create cartisian map
+    dims = MPI.Compute_dims(size, 1)
+    cart_comm = comm.Create_cart(dims, periods=[False])
+
     N_slice, N_slice_distributions = slice_the_box(N, size, rank)
     slice_idx = np.array([N_slice_distributions[:rank].sum(), N_slice_distributions[:rank + 1].sum()])
 
@@ -46,7 +50,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
     ############# JACOBI COMPUTATION #########################################################
     #######################################################################################
 
-    u_curr, convergence_hist, i = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=comm)
+    u_curr, convergence_hist, i = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=cart_comm)
 
     LHS_dt.Free()
     RHS_dt.Free()
@@ -94,7 +98,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
             plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {size}, {n_iter} iterations")
 
 if __name__ == "__main__":
-    N = 300
+    N = 100
     MAX_ITER = 10000
     TOLERANCE = 10e-5
     INIT_VALUE = 10
