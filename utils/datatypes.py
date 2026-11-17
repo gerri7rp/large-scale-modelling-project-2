@@ -32,3 +32,35 @@ def get_datatypes(arr: np.ndarray):
 
 
     return left, right
+
+
+def get_datatypes_all(arr: np.ndarray):
+    """
+    Creates custom datatypes for getting the left,right,top,bottom,front and back boundary
+    of an arbitrary 3d array size
+    """
+    # Get array information
+    Nx,Ny,Nz = arr.shape
+
+    # Left boundary
+    left = MPI.DOUBLE.Create_subarray(
+        arr.shape, (1, Ny, Nz), (1, 0, 0), order=MPI.ORDER_C
+    )
+    right = MPI.DOUBLE.Create_subarray(
+        arr.shape, (1, Ny, Nz), (Nx - 2, 0, 0), order=MPI.ORDER_C
+    )
+    front = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, 1, Nz), (0, 1, 0), order=MPI.ORDER_C
+    )
+    back = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, 1, Nz), (0, Ny-2, 0), order=MPI.ORDER_C
+    )
+    buttom = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, Ny, 1), (0, 0, 1), order=MPI.ORDER_C
+    )
+    top = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, Ny, 1), (0, 0, Nz-2), order=MPI.ORDER_C
+    )
+
+
+    return left, right, front, back, buttom, top
