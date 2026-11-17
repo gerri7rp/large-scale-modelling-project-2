@@ -9,30 +9,33 @@ def analytical_solution(x: np.ndarray,
 
 
 
-def is_resulting_image_correct(image: np.array, xlim, ylim) -> bool:
+def is_solution_correct(matrix: np.array, atol) -> bool:
     """
-    Compares if resulting image and reference image are the same. (Checks if the results are correct)
+    Compares if resulting matrix and the analytical solution are the same. (Checks if the results are correct)
     Returns:
-        True:  if the images match.
-        False: if the images don't match.
-        None:  if there's no reference image.
+        True:  if the results match.
+        False: if the results don't match.
     """
 
-    # Get reference image filename
-    image_size_x, image_size_y = image.shape
-    filename = Path(f"reference_outputs/{xlim[0]}:{xlim[1]}_{ylim[0]}:{ylim[1]}/{image_size_x}x{image_size_y}.png")
+    print("HELLO IS SOLUTION CORRECT")
 
-    # Check if such file exists
-    if filename.exists() == False:
-        return None
+    if matrix.ndim != 3:
+        print("The dimension of the results is incorrect!")
+        return False
 
-    else:
-        # Upload reference image
-        reference_image = np.array(Image.open(filename), dtype=np.uint8)
+    # Obtains all the matrix points
+    n = matrix.shape[0]
+    points = np.linspace(-1.0, 1.0, n + 2)[1:-1]
 
-        # Check if both images are the same
-        if np.array_equal(image, reference_image):
-            return True
-            
-        else:
-            return False
+    # Calculates analytical solution for all the points of the matrix
+    reference = analytical_solution(
+        points[:, None, None],
+        points[None, :, None],
+        points[None, None, :],
+    )
+
+    # Checks that the analytical solution and the result are close enough
+    is_valid = bool(np.allclose(matrix, reference, rtol=0.0, atol=atol))
+
+    return is_valid
+

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import os
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
@@ -14,7 +15,7 @@ TOLERANCE = 10e-6
 INIT_VALUE = 10
 PLOT = False
 
-def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
+def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
     argv = sys.argv[1:]
     if argv:
         N = int(argv.pop(0))
@@ -27,11 +28,9 @@ def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
     if argv:
         PLOT = bool(argv.pop(0))
     if argv:
-        experiment_id = argv.pop(0)
-    if argv:
         csv_path = Path(argv.pop(0))
 
-    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT
+    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path
 
 
 
@@ -86,7 +85,7 @@ def solve(N, max_iter, tolerance, init_value):
 
 
 if __name__ == "__main__":
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
     u, convergence_hist, i = solve(N, MAX_ITER, TOLERANCE, INIT_VALUE)
 
     if i + 1== MAX_ITER:
@@ -102,9 +101,16 @@ if __name__ == "__main__":
         plot_slice_vs_analytical(u[1:-1, 1:-1, 1:-1], pts, z=0.5, title=f"Jacobi, N = {N}, {len(convergence_hist)} iterations")
 
 
-    # is_valid = validate_result(image_collector.T)
-        
-    # save_and_validate_results(
-    #     csv_path, RUN_TYPE, RUN_ID, is_valid, n_ranks, chunk_size, size,
-    #     xlim, ylim, time_compute, time_comm, time_wait
-    # )
+
+    RUN_TYPE = script_name = Path(__file__).stem
+    RUN_ID   = os.environ.get("RUN_ID", "manual-run")
+    n_ranks = 1
+    chunk_size = 0
+    
+    is_valid =  save_and_validate_results(
+        matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
+        chunk_size=chunk_size, N=N, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, time_compute=[0], time_comm=[0], time_wait=[0]
+    )
+
+    if not is_valid:
+        print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")

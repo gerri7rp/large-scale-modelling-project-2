@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # --------------------------------------------------
@@ -14,7 +15,6 @@
 # MODULES
 # --------------------------------------------------
 module load matplotlib/3.10.3-numpy-2.3.1-python-3.12.11
-module load mpi4py/4.0.3-python-3.12.11-openmpi-5.0.8
 
 # --------------------------------------------------
 # PROJECT CONFIGURATION
@@ -42,21 +42,19 @@ CSV_PATH="${RUN_DIR}/${CSV_NAME}"
 # LOG CONFIGURATION
 # --------------------------------------------------
 echo "Implementation: $FILE_PATH"
-echo "MPI processes:  $NP"
-echo "Chunk size:     $CHUNK"
-echo "Image size:     $IMG_SIZE"
-echo "X limits:       $XLIM"
-echo "Y limits:       $YLIM"
+echo "N:              $N"
+echo "Max iterations: $MAX_ITER"
+echo "Tolerance:      $TOLERANCE"
+echo "Initial value:  $INIT_VALUE"
+echo "Plot:           $PLOT"
 echo "Batch ID:       $RUN_ID"
 echo "CSV output:     $CSV_PATH"
 
 # --------------------------------------------------
 # RUN
 # --------------------------------------------------
-mpirun -np "$NP" python3 "$FILE_PATH" \
-    "$CHUNK" "$IMG_SIZE" "$XLIM" "$YLIM" \
-    "${RUN_TYPE}_${RUN_ID}_np${NP}_chunk${CHUNK}_${IMG_SIZE}" \
-    "$CSV_PATH"
+python3 "$FILE_PATH" \
+    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH"
 
 STATUS=$?
 
