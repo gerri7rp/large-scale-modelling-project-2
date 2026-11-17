@@ -15,6 +15,7 @@
 # MODULES
 # --------------------------------------------------
 module load matplotlib/3.10.3-numpy-2.3.1-python-3.12.11
+module load mpi4py/4.0.3-python-3.12.11-openmpi-5.0.8
 
 # --------------------------------------------------
 # PROJECT CONFIGURATION
@@ -42,6 +43,7 @@ CSV_PATH="${RUN_DIR}/${CSV_NAME}"
 # LOG CONFIGURATION
 # --------------------------------------------------
 echo "Implementation: $FILE_PATH"
+echo "MPI processes:  $NP"
 echo "N:              $N"
 echo "Max iterations: $MAX_ITER"
 echo "Tolerance:      $TOLERANCE"
@@ -53,7 +55,7 @@ echo "CSV output:     $CSV_PATH"
 # --------------------------------------------------
 # RUN
 # --------------------------------------------------
-python3 "$FILE_PATH" \
+mpirun -np "$NP" python3 "$FILE_PATH" \
     "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH"
 
 STATUS=$?

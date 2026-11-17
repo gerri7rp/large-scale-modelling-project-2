@@ -1,6 +1,7 @@
 import sys
 from time import time, perf_counter
 import numpy as np
+import os
 from mpi4py import MPI
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
@@ -97,6 +98,9 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
             pts = np.linspace(-1, 1, N + 2)[1:-1]
             plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {size}, {n_iter} iterations")
 
+
+    return rank, size, u_curr, i, flops, lups
+
 if __name__ == "__main__":
     N = 100
     MAX_ITER = 10000
@@ -107,6 +111,16 @@ if __name__ == "__main__":
     # Set up data
     N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
     t0 = perf_counter()
-    main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    rank, n_ranks, u, n_iterations, flops, lups = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
     total_time = perf_counter() - t0
+
+    # if rank == 0:
+    RUN_TYPE = script_name = Path(__file__).stem
+    RUN_ID   = os.environ.get("RUN_ID", "manual-run")
+
+    is_valid =  save_and_validate_results(
+        matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
+        chunk_size=0, N=N, max_iter=MAX_ITER, n_iterations=n_iterations, tolerance=TOLERANCE, 
+        init_value=INIT_VALUE, total_time = total_time
+    )
     

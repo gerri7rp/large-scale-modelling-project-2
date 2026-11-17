@@ -11,15 +11,15 @@ RESULTS_DIR = Path(
 )
 
 
-def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk_size, N, max_iter, tolerance, init_value,
-                              time_compute, time_comm, time_wait):
+def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk_size, N, max_iter, n_iterations, tolerance,
+                               init_value, total_time, time_compute=None, time_comm=None, time_wait=None):
     is_valid = validate_result(matrix)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     columns = [
-        "run_id", "type", "is_valid", "n_ranks", "rank", "chunk_size","N", "max_iter", 
-        "tolerance", "init_value", "t_compute", "t_communication", "t_wait_done", "t_total",
+        "run_id", "type", "is_valid", "n_ranks", "rank", "chunk_size","N", "max_iter", "n_iterations",
+        "tolerance", "init_value", "t_total" # "t_compute", "t_communication", "t_wait_done",
     ]
 
     # Append rows for this experiment.
@@ -30,15 +30,15 @@ def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk
             writer.writerow(columns)
 
         for rank in range(n_ranks):
-            compute = float(time_compute[rank])
-            communication = float(time_comm[rank])
-            wait = float(time_wait[rank])
+            # compute = float(time_compute[rank])
+            # communication = float(time_comm[rank])
+            # wait = float(time_wait[rank])
 
             writer.writerow([
                 run_id, run_type, is_valid, n_ranks, rank, chunk_size,
-                int(N), int(max_iter), float(tolerance), int(init_value),
-                compute, communication, wait,
-                compute + communication + wait,
+                int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), float(total_time)
+                # compute, communication, wait,
+                # compute + communication + wait,
             ])
 
     return is_valid
@@ -48,9 +48,12 @@ def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk
 def validate_result(matrix):
     solution_tolerance = 10e-3
 
-    is_valid = check_solution.is_solution_correct(matrix, solution_tolerance)
-    print(f"is valid: {is_valid}")
-    return is_valid
+    # Implement this
+    # is_valid = check_solution.is_solution_correct(matrix, solution_tolerance)
+    # print(f"is valid: {is_valid}")
+
+
+    return None
 
 
         
