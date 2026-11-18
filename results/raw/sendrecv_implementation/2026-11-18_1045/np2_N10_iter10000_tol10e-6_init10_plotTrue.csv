@@ -1,3 +1,0 @@
-run_id,type,is_valid,n_ranks,rank,chunk_size,N,max_iter,n_iterations,tolerance,init_value,t_total
-2026-11-18_1045,sendrecv_implementation,,2,0,0,10,10000,273,1e-05,10,1.229134765919298
-2026-11-18_1045,sendrecv_implementation,,2,1,0,10,10000,273,1e-05,10,0.08558770106174052

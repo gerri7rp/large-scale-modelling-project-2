@@ -27,7 +27,7 @@ IMPLEMENTATIONS=(
 # --------------------------------------------------
 # PARAMETERS
 # --------------------------------------------------
-PROCESS_COUNTS=(8)
+PROCESS_COUNTS=(4)
 N_VALUES=(10)
 MAX_ITER_VALUES=(1000)
 TOLERANCE_VALUES=(10e-6)
@@ -56,9 +56,11 @@ for script in "${IMPLEMENTATIONS[@]}"; do
     RUN_TYPE="${script%.py}"
     RUN_DIR="${BASE_DIR}/${RUN_TYPE}/${RUN_ID}"
     LOG_DIR="results/logs/${RUN_ID}/${RUN_TYPE}"
+    SOLUTIONS_DIR="results/solutions/${RUN_TYPE}/${RUN_ID}"
 
     mkdir -p "$RUN_DIR"
     mkdir -p "$LOG_DIR"
+    mkdir -p "$SOLUTIONS_DIR"
 
     for np in "${PROCESS_COUNTS[@]}"; do
         for n in "${N_VALUES[@]}"; do
@@ -69,8 +71,11 @@ for script in "${IMPLEMENTATIONS[@]}"; do
 
                             CSV_NAME="np${np}_N${n}_iter${max_iter}_tol${tolerance}_init${init_value}_plot${plot}.csv"
                             LOG_NAME="np${np}_N${n}_iter${max_iter}_tol${tolerance}_init${init_value}_plot${plot}"
+                            SOLUTION_NAME="np${np}_N${n}_iter${max_iter}_tol${tolerance}_init${init_value}_plot${plot}".bin
 
                             CSV_PATH="${RUN_DIR}/${CSV_NAME}"
+                            SOLUTION_PATH="${SOLUTIONS_DIR}/${SOLUTION_NAME}"
+
 
                             echo "Submitting:"
                             echo "  Implementation: $script"
