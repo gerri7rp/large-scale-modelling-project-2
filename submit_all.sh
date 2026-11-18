@@ -27,9 +27,9 @@ IMPLEMENTATIONS=(
 # --------------------------------------------------
 # PARAMETERS
 # --------------------------------------------------
-PROCESS_COUNTS=(1 2 4)
+PROCESS_COUNTS=(8)
 N_VALUES=(10)
-MAX_ITER_VALUES=(10000)
+MAX_ITER_VALUES=(1000)
 TOLERANCE_VALUES=(10e-6)
 INIT_VALUE_VALUES=(10)
 PLOT_VALUES=(True)
