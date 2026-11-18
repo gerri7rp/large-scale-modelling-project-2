@@ -8,4 +8,8 @@ dependencies = [
     "matplotlib>=3.11.2",
     "numpy>=2.5.4",
     "mpi4py>=4.0.0",
+    "snakeviz>=2.2.2",
+    "tuna>=0.5.15",
+    "gprof2dot>=2025.4.14",
+    "pandas>=3.1.1",
 ]

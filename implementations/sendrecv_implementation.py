@@ -118,9 +118,9 @@ if __name__ == "__main__":
     RUN_TYPE = script_name = Path(__file__).stem
     RUN_ID   = os.environ.get("RUN_ID", "manual-run")
 
-    is_valid =  save_and_validate_results(
-        matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
-        chunk_size=0, N=N, max_iter=MAX_ITER, n_iterations=n_iterations, tolerance=TOLERANCE, 
-        init_value=INIT_VALUE, total_time = total_time
-    )
+    # is_valid =  save_and_validate_results(
+    #     matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
+    #     chunk_size=0, N=N, max_iter=MAX_ITER, n_iterations=n_iterations, tolerance=TOLERANCE, 
+    #     init_value=INIT_VALUE, total_time = total_time
+    # )
     

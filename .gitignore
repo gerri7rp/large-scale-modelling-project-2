@@ -6,3 +6,8 @@ uv.lock
 plots/
 marius_playground.py
 *.bin
+*.prof
+*.png
+*.js
+*.css
+*.html

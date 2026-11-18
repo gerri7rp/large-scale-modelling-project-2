@@ -1,0 +1,11 @@
+func,0,1,2,3,imbalance_%
+jacobi_step_slice (sendrecv_sliceedges.py:75),19.3437,19.3292,19.1566,19.0946,1.2879
+norm (sequential.py:66),5.8975,5.8399,5.8046,5.814,1.5742
+solve_slice (sendrecv_sliceedges.py:84),4.3301,4.2817,4.3985,4.5558,6.0162
+<method 'reduce' of 'numpy.ufunc' objects>,0.9901,1.0061,1.0792,1.1051,10.4096
+zeros_like (numeric.py:97),0.341,0.3534,0.3508,0.3446,3.4957
+send (sendrecv_sliceedges.py:21),0.2214,0.2176,0.3419,0.2266,36.3512
+recv (sendrecv_sliceedges.py:27),0.2445,0.3251,0.2145,0.2129,34.5272
+__init__ (backend_macosx.py:118),0.2464,0.0,0.0,0.0,100.0
+create_with_canvas (backend_bases.py:2810),0.2331,0.0,0.0,0.0,100.0
+_findfont_cached (font_manager.py:1628),0.1421,0.0,0.0,0.0,100.0
