@@ -39,6 +39,23 @@ def handle_plots(convergence_hist, tolerance, max_iter, n_ranks, file, N):
     pts = np.linspace(-1, 1, N + 2)[1:-1]
     plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {n_ranks}, {n_iter} iterations")
 
+    # Harris changes?? 
+    # if rank == 0:
+    #     n_iter = i + 1  # history is only recorded every 10th iteration
+    #     if n_iter == MAX_ITER and convergence_hist[-1] >= TOLERANCE:
+    #         print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")
+    #     else:
+    #         print(f"Reached tolerance after {n_iter} iterations of max {MAX_ITER} \n")
+
+    #     u = np.fromfile(file, dtype=np.float64).reshape(N, N, N)
+
+    #     if PLOT:
+    #         plot_convergence(convergence_hist, TOLERANCE, title=f"parallel/Jacobi sendrecv convergence, N = {N}, size = {size}", every=10)
+    #         pts = np.linspace(-1, 1, N + 2)[1:-1]
+    #         plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {size}, {n_iter} iterations")
+
+
+
 
 def write_results_to_file(rank, size, comm, u_curr):
     amode = MPI.MODE_CREATE + MPI.MODE_WRONLY
@@ -99,7 +116,6 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
     initialization_time = np.array([perf_counter() - initialization_time])
 
 
-
     ### 2. JACOBI COMPUTATION 
     jacobi_time = perf_counter()
 
@@ -110,7 +126,6 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
     jacobi_time = np.array([perf_counter() - jacobi_time])
 
  
-
     ### 3. WRITING RESULTS TO FILE
     fileWriting_time = perf_counter()
 
@@ -139,6 +154,7 @@ if __name__ == "__main__":
     t0 = perf_counter()
     rank, comm, n_ranks, u, n_iterations, flops, lups, file, convergence_hist, initialization_time, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE)
     total_time = np.array([perf_counter() - t0])
+
 
 
     # Rank 0 gathers data from all ranks

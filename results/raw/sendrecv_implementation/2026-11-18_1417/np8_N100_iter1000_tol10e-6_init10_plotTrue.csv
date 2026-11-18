@@ -1,0 +1,2 @@
+run_id,type,is_valid,n_ranks,rank,chunk_size,N,max_iter,n_iterations,tolerance,init_value,initialization_time,jacobi_time,fileWriting_time,t_total
+2026-11-18_1417,sendrecv_implementation,,8,0,0,100,1000,999,1e-05,10,0.01014020899310708,4.421991240931675,0.09429835597984493,4.52647830802016

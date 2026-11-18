@@ -1,0 +1,9 @@
+Implementation: implementations/sendrecv_implementation.py
+MPI processes:  8
+N:              10
+Max iterations: 1000
+Tolerance:      10e-6
+Initial value:  10
+Plot:           True
+Batch ID:       2026-11-18_1433
+CSV output:     results/raw/sendrecv_implementation/2026-11-18_1433/np8_N10_iter1000_tol10e-6_init10_plotTrue.csv

@@ -95,19 +95,24 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
         comm.Barrier() # Don't know if this is needed, but to ensure that all edges has been recved before computing new values
         # Do jacobi
         u_new = jacobi_step_slice(u_curr, d2f, N, N_slice)
-        local_diff = norm(u_curr, u_new)
-        diff = comm.allreduce(local_diff, op=MPI.MAX) # to ensure entire cube, and not just current slice, has converges
-        u_curr[1:-1, 1:-1, 1:-1] = u_new
-        convergence_hist.append(diff)
 
-        if diff < tolerance:
-            break
+
+        if i % 10 == 0:
+            local_diff = norm(u_curr, u_new)
+            diff = comm.allreduce(local_diff, op=MPI.MAX) # to ensure entire cube, and not just current slice, has converges
+            convergence_hist.append(diff)
+            if diff < tolerance:
+                u_curr[1:-1, 1:-1, 1:-1] = u_new
+                break
+        
+        u_curr[1:-1, 1:-1, 1:-1] = u_new
+        
     time = perf_counter() - t0
     n_iter = i + 1  # number of iterations
     M = np.prod(u_new.shape)
     n_flops_norm = M # this doesnt count abs as a flop
     n_flops_jacobi = 7
-    flops = ((n_flops_jacobi * M + n_flops_norm) * n_iter) / time
+    flops = ((n_flops_jacobi * M) * n_iter + n_flops_norm * len(convergence_hist)) / time
     lups = (M * n_iter) / time
 
     return u_curr, convergence_hist, i, flops, lups
