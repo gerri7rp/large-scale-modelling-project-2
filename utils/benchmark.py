@@ -12,14 +12,14 @@ RESULTS_DIR = Path(
 
 
 def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk_size, N, max_iter, n_iterations, tolerance,
-                               init_value, total_time, time_compute=None, time_comm=None, time_wait=None):
+                               init_value, initialization_time, jacobi_time, fileWriting_time, total_time, flops, lups):
     is_valid = validate_result(matrix)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     columns = [
-        "run_id", "type", "is_valid", "n_ranks", "rank", "chunk_size","N", "max_iter", "n_iterations",
-        "tolerance", "init_value", "t_total" # "t_compute", "t_communication", "t_wait_done",
+        "run_id", "type", "is_valid", "n_ranks", "rank", "chunk_size", "N", "max_iter", "n_iterations",
+        "tolerance", "init_value", "initialization_time", "jacobi_time", "fileWriting_time", "t_total", "flops", "lups"
     ]
 
     # Append rows for this experiment.
@@ -30,15 +30,11 @@ def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk
             writer.writerow(columns)
 
         for rank in range(n_ranks):
-            # compute = float(time_compute[rank])
-            # communication = float(time_comm[rank])
-            # wait = float(time_wait[rank])
-
             writer.writerow([
                 run_id, run_type, is_valid, n_ranks, rank, chunk_size,
-                int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), float(total_time)
-                # compute, communication, wait,
-                # compute + communication + wait,
+                int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), 
+                float(initialization_time[rank]), float(jacobi_time[rank]),float(fileWriting_time[rank]),
+                float(total_time[rank]), float(flops[rank]), float(lups[rank])
             ])
 
     return is_valid
