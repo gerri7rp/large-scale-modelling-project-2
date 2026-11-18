@@ -93,7 +93,7 @@ for script in "${IMPLEMENTATIONS[@]}"; do
                                 -R "span[ptile=24]" \
                                 -oo "${LOG_DIR}/${LOG_NAME}.out" \
                                 -eo "${LOG_DIR}/${LOG_NAME}.err" \
-                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME" \
+                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME,SOLUTION_PATH=$SOLUTION_PATH" \
                                 < job.sh
 
                             if [ $? -eq 0 ]; then

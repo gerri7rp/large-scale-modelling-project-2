@@ -51,12 +51,13 @@ echo "Initial value:  $INIT_VALUE"
 echo "Plot:           $PLOT"
 echo "Batch ID:       $RUN_ID"
 echo "CSV output:     $CSV_PATH"
+echo "Solution path:  $SOLUTION_PATH"
 
 # --------------------------------------------------
 # RUN
 # --------------------------------------------------
 mpirun -np "$NP" python3 "$FILE_PATH" \
-    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH"
+    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH" "$SOLUTION_PATH"
 
 STATUS=$?
 
