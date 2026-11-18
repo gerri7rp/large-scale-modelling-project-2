@@ -11,3 +11,5 @@ marius_playground.py
 *.js
 *.css
 *.html
+*.mpiP
+/results/profile/**/*.csv

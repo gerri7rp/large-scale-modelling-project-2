@@ -85,7 +85,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
     comm.Barrier()
 
     if rank == 0:
-        n_iter = len(convergence_hist)
+        n_iter = i + 1  # history is only recorded every 10th iteration
         if n_iter == MAX_ITER and convergence_hist[-1] >= TOLERANCE:
             print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")
         else:
@@ -94,7 +94,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT):
         u = np.fromfile(file, dtype=np.float64).reshape(N, N, N)
 
         if PLOT:
-            plot_convergence(convergence_hist, TOLERANCE, title=f"parallel/Jacobi sendrecv convergence, N = {N}, size = {size}")
+            plot_convergence(convergence_hist, TOLERANCE, title=f"parallel/Jacobi sendrecv convergence, N = {N}, size = {size}", every=10)
             pts = np.linspace(-1, 1, N + 2)[1:-1]
             plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {size}, {n_iter} iterations")
 

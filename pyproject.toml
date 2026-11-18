@@ -3,13 +3,11 @@ name = "large-scale-modelling-project-2"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
-    "matplotlib>=3.11.2",
-    "numpy>=2.5.4",
-    "mpi4py>=4.0.0",
     "snakeviz>=2.2.2",
     "tuna>=0.5.15",
     "gprof2dot>=2025.4.14",
     "pandas>=3.1.1",
+    "six>=1.17.0",
 ]

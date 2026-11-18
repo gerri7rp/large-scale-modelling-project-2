@@ -35,7 +35,7 @@ top = tot.loc[tot.max(axis=1).nlargest(top_n).index]
 # Imbalance = (max - min) / max across ranks, per function
 top_csv = top.copy()
 top_csv["imbalance_%"] = 100 * (top.max(axis=1) - top.min(axis=1)) / top.max(axis=1)
-top_csv.round(4).to_csv(os.path.join(run_dir, "compare_ranks.csv"))
+top_csv.round(2).to_csv(os.path.join(run_dir, "compare_ranks.csv"))
 
 ax = top.iloc[::-1].plot.barh(figsize=(10, 0.5 * top_n + 2), width=0.8)
 ax.set_xlabel("tottime [s]")

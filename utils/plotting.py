@@ -22,9 +22,10 @@ except ImportError:
 
 def plot_convergence(convergence_hist: list[float],
                      tolerance: float,
-                     title: str, **kwargs) -> None:
+                     title: str, every: int = 1, **kwargs) -> None:
+    # `every`: the norm was only recorded every `every`-th iteration
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.semilogy(range(1, len(convergence_hist) + 1), convergence_hist, linewidth=2)
+    ax.semilogy([every * k + 1 for k in range(len(convergence_hist))], convergence_hist, linewidth=2)
 
     # Mark the stopping tolerance
     if tolerance is not None:
