@@ -57,7 +57,7 @@ def handle_plots(convergence_hist, tolerance, max_iter, n_ranks, file, N):
 
 
 
-def write_results_to_file(rank, size, comm, u_curr, SOLUTION_PATH):
+def write_results_to_file(comm, u_curr, SOLUTION_PATH):
     u_write = np.ascontiguousarray(u_curr[1:-1, 1:-1, 1:-1])
 
     amode = MPI.MODE_CREATE + MPI.MODE_WRONLY
@@ -108,7 +108,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
     ### 3. WRITING RESULTS TO FILE
     fileWriting_time = perf_counter()
 
-    write_results_to_file(rank, size, comm, u_curr, SOLUTION_PATH)
+    write_results_to_file(comm, u_curr, SOLUTION_PATH)
     comm.Barrier()
 
     fileWriting_time = np.array([perf_counter() - fileWriting_time])
