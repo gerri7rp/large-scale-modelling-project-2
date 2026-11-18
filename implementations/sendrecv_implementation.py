@@ -57,38 +57,17 @@ def handle_plots(convergence_hist, tolerance, max_iter, n_ranks, file, N):
 
 
 
-def write_results_to_file(rank, size, comm, u_curr):
-    amode = MPI.MODE_CREATE + MPI.MODE_WRONLY
-    out_dir = Path("results/solutions/parallel")
-
-    # Create folder to save results
-    if rank == 0:
-        out_dir.mkdir(parents=True, exist_ok=True)
-
-    comm.Barrier() # folder exists before anyone opens the file
-
-    file = str(out_dir / f"N={N},size={size},IV={INIT_VALUE}.bin")
-    fh = MPI.File.Open(comm, file, amode = amode)
-
-    fh.Set_size(0) # del old content
-    comm.Barrier()
-
+def write_results_to_file(rank, size, comm, u_curr, SOLUTION_PATH):
     u_write = np.ascontiguousarray(u_curr[1:-1, 1:-1, 1:-1])
-    offset = 0 # offset used to seek in the file
-    for r in range(comm.size):
-        if r != comm.rank:
-            offset = comm.bcast(offset, root=r)
-            continue
 
-        fh.Seek(offset)
-        fh.Write(u_write)
-        comm.bcast(fh.Get_position(), root=r)
+    amode = MPI.MODE_CREATE + MPI.MODE_WRONLY
+
+    fh = MPI.File.Open(comm, SOLUTION_PATH, amode = amode)
+    fh.Write_ordered(u_write)
     fh.Close()
 
-    return file
 
-
-def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
+def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
     ### 1. INITIALIZATION
     initialization_time = perf_counter()
 
@@ -129,13 +108,13 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
     ### 3. WRITING RESULTS TO FILE
     fileWriting_time = perf_counter()
 
-    file = write_results_to_file(rank, size, comm, u_curr)
+    write_results_to_file(rank, size, comm, u_curr, SOLUTION_PATH)
     comm.Barrier()
 
     fileWriting_time = np.array([perf_counter() - fileWriting_time])
 
 
-    return rank, comm, size, u_curr, i, flops, lups, file, convergence_hist, initialization_time, jacobi_time, fileWriting_time
+    return rank, comm, size, u_curr, i, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time
 
 
 
@@ -148,11 +127,11 @@ if __name__ == "__main__":
     PLOT = True
 
     # Get run parameters from the command line
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, SOLUTION_PATH = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
 
     # Main
     t0 = perf_counter()
-    rank, comm, n_ranks, u, n_iterations, flops, lups, file, convergence_hist, initialization_time, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE)
+    rank, comm, n_ranks, u, n_iterations, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH)
     total_time = np.array([perf_counter() - t0])
 
 
@@ -173,6 +152,7 @@ if __name__ == "__main__":
     comm.Gather(initialization_time, initialization_time_array, root = 0)
     comm.Gather(jacobi_time,         jacobi_time_array,         root = 0)
     comm.Gather(fileWriting_time,    fileWriting_time_array,    root = 0)
+    comm.Gather(total_time,          total_time_array,          root = 0)
     comm.Gather(flops,               flops_array,               root = 0)
     comm.Gather(lups,                lups_array,                root = 0)
 
@@ -183,7 +163,7 @@ if __name__ == "__main__":
         RUN_ID   = os.environ.get("RUN_ID", "manual-run")
 
         if PLOT:
-            handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, file, N)
+            handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, SOLUTION_PATH, N)
 
         is_valid =  save_and_validate_results(
             matrix = u, 
