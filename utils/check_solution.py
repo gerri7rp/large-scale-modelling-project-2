@@ -1,6 +1,8 @@
 from PIL import Image
 from pathlib import Path
 import numpy as np
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 def analytical_solution(x: np.ndarray,
            y: np.ndarray,
@@ -26,7 +28,7 @@ def is_solution_correct(matrix: np.array, atol) -> bool:
     # Obtains all the matrix points
     n = matrix.shape[0]
     points = np.linspace(-1.0, 1.0, n + 2)[1:-1]
-
+    
     # Calculates analytical solution for all the points of the matrix
     reference = analytical_solution(
         points[:, None, None],
@@ -38,4 +40,15 @@ def is_solution_correct(matrix: np.array, atol) -> bool:
     is_valid = bool(np.allclose(matrix, reference, rtol=0.0, atol=atol))
 
     return is_valid
+
+
+if __name__ == "__main__":
+    from utils.plotting import plot_planes
+    N = 100
+    solution = np.fromfile(
+        "results/solutions/my.bin",
+        dtype=np.float64,
+    ).reshape((N, N, N))
+
+    is_solution_correct(solution, atol=1e-4)
 

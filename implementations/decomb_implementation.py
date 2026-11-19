@@ -1,10 +1,13 @@
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
+import csv
+from sys import argv
 from math import prod
 from pathlib import Path
 from time import perf_counter
 from numba import jit
+import os
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from implementations.sequential import get_run_parameters
@@ -124,16 +127,62 @@ def write_results_to_file(comm, u_curr, global_idx, N, solution_path):
         fh.Close()
         filetype.Free()
 
-def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM):
+def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
+                   tolerance, max_iter, init_value, times, n_iter, flops, lops):
+    if csv_path is None:
+        csv_path = Path("results/raw/decomb_implementation") / run_id
+
+    csv_path = Path(csv_path)
+    if csv_path.suffix != ".csv":
+        csv_path = csv_path / (
+            f"np{size}_N{N}_dim{decomb_dim}_axes{'-'.join(map(str, decomb_axes))}"
+            f"_iter{max_iter}_tol{tolerance}_init{init_value}.csv"
+        )
+
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    columns = [
+        "run_id", "N", "size", "decomb_dim", "decomb_axes",
+        "tolerance", "max_iter", "init_value",
+        "rank", "time","n_iter", "flops", "lops",
+    ]
+
+    with csv_path.open("a", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        if csvfile.tell() == 0:
+            writer.writerow(columns)
+
+        axes_text = str(list(decomb_axes))
+        for rank in range(size):
+            writer.writerow([
+                run_id,
+                int(N),
+                int(size),
+                int(decomb_dim),
+                axes_text,
+                float(tolerance),
+                int(max_iter),
+                int(init_value),
+                int(rank),
+                float(times[rank]),
+                int(n_iter[rank]),
+                float(flops[rank]),
+                float(lops[rank]),
+            ])
+
+def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
+         DECOMB_AXES, solution_path):
     # Setup communication
     comm = MPI.COMM_WORLD.Clone()
     size = comm.size
     rank = comm.Get_rank()
 
     # Create cartisian map
-    dims = MPI.Compute_dims(size, DECOMB_DIM)
-    cart_comm = comm.Create_cart(dims, periods=[False] * DECOMB_DIM)
-    neighbors = [cart_comm.Shift(axis, 1) for axis in range(DECOMB_DIM)]
+    dims = [1, 1, 1]
+    for axis in DECOMB_AXES:
+        dims[axis] = 0
+    dims = MPI.Compute_dims(size, dims)
+    cart_comm = comm.Create_cart(dims, periods=[False, False, False])
+    neighbors = [cart_comm.Shift(axis, 1) for axis in range(3)]
     #print(f"Cartisian map dim: {dims}")
 
     # Calculate domain decomposition
@@ -142,7 +191,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM):
     #print(f"Rank {rank} has global index {global_idx}")
 
     # Initial array
-    u_curr = np.full([d+2 for d in slice_shape], INIT_VALUE, dtype=float) # No need to enforce boundary condtion here as the ghost cells get overwritten later
+    u_curr = np.full([d+2 for d in slice_shape], INIT_VALUE, dtype=float)
     u_curr[[0,-1], :, :] = 0    # Init ghost_cells as zero
     u_curr[:, [0,-1], :] = 0
     u_curr[:, :, [0,-1]] = 0
@@ -192,10 +241,20 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM):
     # Write to file
     write_results_to_file(cart_comm, u_curr, global_idx, N, solution_path)
 
+    # Calculate flops and lups
+    Nx, Ny, Nz = u_curr.shape
+    local_points = (Nx - 2) * (Ny - 2) * (Nz - 2)
+    n_iter = i + 1
+    flops = (7 * local_points * n_iter) / time
+    lups = (local_points * n_iter) / time
+
+    # Plot 
     if (PLOT == True) and (rank == 0):
         print(f"Total time: {time}")
         plot_convergence(convergence_hist, TOLERANCE, title=f"Jacobi convergence, N = {N}")
         
+    return rank, size, time, n_iter, flops, lups
+
 
 
 
@@ -203,15 +262,63 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM):
     
 
 if __name__ == "__main__":
-    N = 200
+    N = 100
     MAX_ITER = 10000
     TOLERANCE = 10e-5
     INIT_VALUE = 10
     PLOT = True
-    DECOMB_DIM = 1
+    DECOMB_DIM = 3
+    DECOMB_AXES = [0,1,2]
     solution_path = "results/solutions/my.bin"
+    csv_path = None
 
-    # Get parameters
-    # N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
-    main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM)
+    argv = sys.argv[1:]
+    if len(argv) == 9:
+        N = int(argv[0])
+        MAX_ITER = int(argv[1])
+        TOLERANCE = float(argv[2])
+        INIT_VALUE = int(argv[3])
+        PLOT = argv[4].lower() == "true"
+        solution_path = Path(argv[5])
+        csv_path = Path(argv[6])
+        DECOMB_DIM = int(argv[7])
+        DECOMB_AXES = [int(axis) for axis in argv[8].split(",")]
+
+
+    RUN_ID = os.environ.get("RUN_ID", "manual-run")
+    if MPI.COMM_WORLD.rank == 0:
+        solution_path.parent.mkdir(parents=True, exist_ok=True)
+    MPI.COMM_WORLD.Barrier()
+    rank, size, time, n_iter, flops, lops = main(
+        N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT,
+        DECOMB_DIM, DECOMB_AXES, solution_path,
+    )
+
+    comm = MPI.COMM_WORLD
+    times = np.zeros(size, dtype=np.float64) if rank == 0 else None
+    all_niter = np.zeros(size, dtype=np.float64) if rank == 0 else None
+    all_flops = np.zeros(size, dtype=np.float64) if rank == 0 else None
+    all_lops = np.zeros(size, dtype=np.float64) if rank == 0 else None
+
+    comm.Gather(np.array([time], dtype=np.float64), times, root=0)
+    comm.Gather(np.array([n_iter], dtype=np.float64), all_niter, root=0)
+    comm.Gather(np.array([flops], dtype=np.float64), all_flops, root=0)
+    comm.Gather(np.array([lops], dtype=np.float64), all_lops, root=0)
+
+    if rank == 0:
+        append_results(
+            csv_path,
+            RUN_ID,
+            N,
+            size,
+            DECOMB_DIM,
+            DECOMB_AXES,
+            TOLERANCE,
+            MAX_ITER,
+            INIT_VALUE,
+            times,
+            all_niter,
+            all_flops,
+            all_lops,
+        )
     
