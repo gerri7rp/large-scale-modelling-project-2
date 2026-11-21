@@ -13,3 +13,4 @@ marius_playground.py
 *.html
 *.mpiP
 /results/profile/**/*.csv
+results/my_results
