@@ -26,7 +26,7 @@ def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
     if argv:
         INIT_VALUE = int(argv.pop(0))
     if argv:
-        PLOT = bool(argv.pop(0))
+        PLOT = argv.pop(0).lower() in ("true", "1", "yes")  # bool("False") would be True
     if argv:
         csv_path = Path(argv.pop(0))
     if argv:

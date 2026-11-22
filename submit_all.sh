@@ -27,12 +27,26 @@ IMPLEMENTATIONS=(
 # --------------------------------------------------
 # PARAMETERS
 # --------------------------------------------------
-PROCESS_COUNTS=(4)
-N_VALUES=(10)
-MAX_ITER_VALUES=(1000)
-TOLERANCE_VALUES=(10e-6)
+### FOR WEAK
+PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
+N_VALUES=()
+for p in "${PROCESS_COUNTS[@]}"; do
+    N_VALUES+=("$(python3 -c "print(round(48 * $p ** (1/3)))")")
+done
+###
+
+### FOR STRONG
+# PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
+# STRONG_N=96
+# N_VALUES=()   # same N for every process count
+# for p in "${PROCESS_COUNTS[@]}"; do
+#     N_VALUES+=("$STRONG_N")
+# done
+###
+MAX_ITER_VALUES=(500)
+TOLERANCE_VALUES=(10e-15)
 INIT_VALUE_VALUES=(10)
-PLOT_VALUES=(True)
+PLOT_VALUES=(False)
 
 # --------------------------------------------------
 # EXPERIMENT IDENTIFIER
@@ -62,9 +76,10 @@ for script in "${IMPLEMENTATIONS[@]}"; do
     mkdir -p "$LOG_DIR"
     mkdir -p "$SOLUTIONS_DIR"
 
-    for np in "${PROCESS_COUNTS[@]}"; do
-        for n in "${N_VALUES[@]}"; do
-            for max_iter in "${MAX_ITER_VALUES[@]}"; do
+    for i in "${!PROCESS_COUNTS[@]}"; do
+        np="${PROCESS_COUNTS[$i]}"
+        n="${N_VALUES[$i]}"
+        for max_iter in "${MAX_ITER_VALUES[@]}"; do
                 for tolerance in "${TOLERANCE_VALUES[@]}"; do
                     for init_value in "${INIT_VALUE_VALUES[@]}"; do
                         for plot in "${PLOT_VALUES[@]}"; do
@@ -106,7 +121,6 @@ for script in "${IMPLEMENTATIONS[@]}"; do
                     done
                 done
             done
-        done
     done
 done
 
