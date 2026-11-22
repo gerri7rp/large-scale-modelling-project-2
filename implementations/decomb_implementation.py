@@ -128,7 +128,7 @@ def write_results_to_file(comm, u_curr, global_idx, N, solution_path):
         filetype.Free()
 
 def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
-                   tolerance, max_iter, init_value, times, n_iter, flops, lops):
+                   tolerance, max_iter, init_value, times, n_iter, flops, lops, comm_times):
     if csv_path is None:
         csv_path = Path("results/raw/decomb_implementation") / run_id
 
@@ -143,7 +143,7 @@ def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
     columns = [
         "run_id", "N", "size", "decomb_dim", "decomb_axes",
         "tolerance", "max_iter", "init_value",
-        "rank", "time","n_iter", "flops", "lops",
+        "rank", "time","n_iter", "flops", "lops","comm_time"
     ]
 
     with csv_path.open("a", newline="") as csvfile:
@@ -167,6 +167,7 @@ def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
                 int(n_iter[rank]),
                 float(flops[rank]),
                 float(lops[rank]),
+                float(comm_times[rank])
             ])
 
 def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
@@ -218,13 +219,18 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
     u_new = np.zeros_like(u_curr)
 
     t0 = perf_counter()
+    comm_time = 0
     for i in range(MAX_ITER):
+        t0_comm = perf_counter()
         sendrecv_sliceedges(u_curr, neighbors, dim2datatype, dims, cart_comm)
         cart_comm.Barrier()
+        comm_time += perf_counter() - t0_comm
 
         # Do a Jacobi iteration
         diff = jacobi_iteration(u_curr, u_new, source)
+        t0_comm = perf_counter()
         max_diff = cart_comm.allreduce(diff, op = MPI.MAX)
+        comm_time += perf_counter() - t0_comm
         #print(f"Max diff: {max_diff}")
         u_curr, u_new = u_new, u_curr
 
@@ -239,7 +245,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
         dtype.Free()
 
     # Write to file
-    write_results_to_file(cart_comm, u_curr, global_idx, N, solution_path)
+    # write_results_to_file(cart_comm, u_curr, global_idx, N, solution_path)
 
     # Calculate flops and lups
     Nx, Ny, Nz = u_curr.shape
@@ -253,7 +259,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
         print(f"Total time: {time}")
         plot_convergence(convergence_hist, TOLERANCE, title=f"Jacobi convergence, N = {N}")
         
-    return rank, size, time, n_iter, flops, lups
+    return rank, size, time, n_iter, flops, lups, comm_time
 
 
 
@@ -289,7 +295,7 @@ if __name__ == "__main__":
     if MPI.COMM_WORLD.rank == 0:
         solution_path.parent.mkdir(parents=True, exist_ok=True)
     MPI.COMM_WORLD.Barrier()
-    rank, size, time, n_iter, flops, lops = main(
+    rank, size, time, n_iter, flops, lops, comm_time = main(
         N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT,
         DECOMB_DIM, DECOMB_AXES, solution_path,
     )
@@ -299,11 +305,13 @@ if __name__ == "__main__":
     all_niter = np.zeros(size, dtype=np.float64) if rank == 0 else None
     all_flops = np.zeros(size, dtype=np.float64) if rank == 0 else None
     all_lops = np.zeros(size, dtype=np.float64) if rank == 0 else None
+    all_comm_times = np.zeros(size, dtype=np.float64) if rank == 0 else None
 
     comm.Gather(np.array([time], dtype=np.float64), times, root=0)
     comm.Gather(np.array([n_iter], dtype=np.float64), all_niter, root=0)
     comm.Gather(np.array([flops], dtype=np.float64), all_flops, root=0)
     comm.Gather(np.array([lops], dtype=np.float64), all_lops, root=0)
+    comm.Gather(np.array([comm_time], dtype=np.float64), all_comm_times, root=0)
 
     if rank == 0:
         append_results(
@@ -320,5 +328,6 @@ if __name__ == "__main__":
             all_niter,
             all_flops,
             all_lops,
+            all_comm_times
         )
     

@@ -15,3 +15,4 @@ marius_playground.py
 /results/profile/**/*.csv
 *.err
 *.out
+results/my_results
