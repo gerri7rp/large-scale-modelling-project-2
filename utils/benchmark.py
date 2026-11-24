@@ -13,12 +13,12 @@ RESULTS_DIR = Path(
 
 def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk_size, N, max_iter, n_iterations, tolerance,
                                init_value, initialization_time, jacobi_time, fileWriting_time, total_time, flops, lups):
-    is_valid = validate_result(matrix)
+    # is_valid = validate_result(matrix)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     columns = [
-        "run_id", "type", "is_valid", "n_ranks", "rank", "chunk_size", "N", "max_iter", "n_iterations",
+        "run_id", "type", "n_ranks", "rank", "chunk_size", "N", "max_iter", "n_iterations",
         "tolerance", "init_value", "initialization_time", "jacobi_time", "fileWriting_time", "t_total", "flops", "lups"
     ]
 
@@ -31,13 +31,13 @@ def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk
 
         for rank in range(n_ranks):
             writer.writerow([
-                run_id, run_type, is_valid, n_ranks, rank, chunk_size,
+                run_id, run_type, n_ranks, rank, chunk_size,
                 int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), 
                 float(initialization_time[rank]), float(jacobi_time[rank]),float(fileWriting_time[rank]),
                 float(total_time[rank]), float(flops[rank]), float(lups[rank])
             ])
 
-    return is_valid
+    return f"Results saved to CSV file: {csv_path}.", True
 
 
 

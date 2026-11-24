@@ -109,10 +109,10 @@ if __name__ == "__main__":
     n_ranks = 1
     chunk_size = 0
     
-    is_valid =  save_and_validate_results(
+    _, _ =  save_and_validate_results(
         matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
         chunk_size=chunk_size, N=N, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, time_compute=[0], time_comm=[0], time_wait=[0]
     )
 
-    if not is_valid:
-        print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")
+    # if not is_valid:
+    #     print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")

@@ -13,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so ut
 from implementations.sequential import get_run_parameters
 from utils.datatypes import get_datatypes_all
 from implementations.sequential import plot_convergence
+from utils.benchmark import save_and_validate_results, validate_result
+
 
 def calculate_slice_shape(N, dims, rank):
     shape = []
