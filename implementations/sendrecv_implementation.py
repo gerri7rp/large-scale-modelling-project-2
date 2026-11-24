@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so ut
 from utils.datatypes import get_datatypes
 from utils.sendrecv_sliceedges import sendrecv_sliceedges, init_slice, solve_slice
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
-from utils.benchmark import save_and_validate_results, validate_result
+from utils.benchmark import save_and_validate_results
 from utils.tools import get_run_parameters
 
 
@@ -155,6 +155,6 @@ if __name__ == "__main__":
             jacobi_time = jacobi_time_array,
             comm_time = comm_time_array,
             flops = flops_array,
-            lops = lops_array
+            lups = lops_array
         )
         

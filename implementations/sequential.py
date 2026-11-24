@@ -7,7 +7,7 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
-from utils.benchmark import save_and_validate_results, validate_result
+from utils.benchmark import save_and_validate_results
 from utils.tools import get_run_parameters
 
 N = 300
@@ -88,11 +88,21 @@ if __name__ == "__main__":
     RUN_TYPE = Path(__file__).stem
     RUN_ID   = os.environ.get("RUN_ID", "manual-run")
     n_ranks = 1
-    chunk_size = 0
     
-    _, _ =  save_and_validate_results(
-        matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
-        chunk_size=chunk_size, N=N, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, time_compute=[0], time_comm=[0], time_wait=[0]
+    _, _ = save_and_validate_results(
+        csv_path=csv_path,
+        run_type=RUN_TYPE,
+        run_id=RUN_ID,
+        n_ranks=n_ranks,
+        N=N,
+        max_iter=MAX_ITER,
+        n_iterations=i + 1,
+        tolerance=TOLERANCE,
+        init_value=INIT_VALUE,
+        jacobi_time=total_time_array,
+        comm_time=np.zeros(n_ranks),
+        flops=None,
+        lups=None,
     )
 
     # if not is_valid:

@@ -33,7 +33,10 @@ def save_and_validate_results(csv_path, run_type, run_id, n_ranks, N, max_iter, 
             writer.writerow([
                 run_id, run_type, n_ranks, rank,
                 int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), 
-                float(jacobi_time[rank]),float(comm_time[rank]), float(flops[rank]), float(lups[rank])
+                float(jacobi_time[rank]),
+                float(comm_time[rank]),
+                float(flops[rank]) if flops is not None else "",
+                float(lups[rank]) if lups is not None else "",
             ])
 
     return f"Results saved to CSV file: {csv_path}.", True

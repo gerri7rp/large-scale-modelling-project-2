@@ -1,7 +1,6 @@
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
-import csv
 from sys import argv
 from math import prod
 from pathlib import Path
@@ -14,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from implementations.sequential import get_run_parameters
 from utils.datatypes import get_datatypes_all
 from implementations.sequential import plot_convergence
+from utils.benchmark import save_and_validate_results
 
 numba.set_num_threads(8)
 def calculate_slice_shape(N, dims, rank):
@@ -120,49 +120,6 @@ def write_results_to_file(comm, u_curr, global_idx, N, solution_path):
     finally:
         fh.Close()
         filetype.Free()
-
-def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
-                   tolerance, max_iter, init_value, times, n_iter, flops, lops, comm_times):
-    if csv_path is None:
-        csv_path = Path("results/raw/decomb_implementation") / run_id
-
-    csv_path = Path(csv_path)
-    if csv_path.suffix != ".csv":
-        csv_path = csv_path / (
-            f"np{size}_N{N}_dim{decomb_dim}_axes{'-'.join(map(str, decomb_axes))}"
-            f"_iter{max_iter}_tol{tolerance}_init{init_value}.csv"
-        )
-
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    columns = [
-        "run_id", "N", "size", "decomb_dim", "decomb_axes",
-        "tolerance", "max_iter", "init_value",
-        "rank", "time","n_iter", "flops", "lops","comm_time"
-    ]
-
-    with csv_path.open("a", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        if csvfile.tell() == 0:
-            writer.writerow(columns)
-
-        axes_text = str(list(decomb_axes))
-        for rank in range(size):
-            writer.writerow([
-                run_id,
-                int(N),
-                int(size),
-                int(decomb_dim),
-                axes_text,
-                float(tolerance),
-                int(max_iter),
-                int(init_value),
-                int(rank),
-                float(times[rank]),
-                int(n_iter[rank]),
-                float(flops[rank]),
-                float(lops[rank]),
-                float(comm_times[rank])
-            ])
 
 def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
          DECOMB_AXES, solution_path):
@@ -296,32 +253,30 @@ if __name__ == "__main__":
 
     comm = MPI.COMM_WORLD
     times = np.zeros(size, dtype=np.float64) if rank == 0 else None
-    all_niter = np.zeros(size, dtype=np.float64) if rank == 0 else None
     all_flops = np.zeros(size, dtype=np.float64) if rank == 0 else None
     all_lops = np.zeros(size, dtype=np.float64) if rank == 0 else None
     all_comm_times = np.zeros(size, dtype=np.float64) if rank == 0 else None
 
     comm.Gather(np.array([time], dtype=np.float64), times, root=0)
-    comm.Gather(np.array([n_iter], dtype=np.float64), all_niter, root=0)
     comm.Gather(np.array([flops], dtype=np.float64), all_flops, root=0)
     comm.Gather(np.array([lops], dtype=np.float64), all_lops, root=0)
     comm.Gather(np.array([comm_time], dtype=np.float64), all_comm_times, root=0)
 
     if rank == 0:
-        append_results(
-            csv_path,
-            RUN_ID,
-            N,
-            size,
-            DECOMB_DIM,
-            DECOMB_AXES,
-            TOLERANCE,
-            MAX_ITER,
-            INIT_VALUE,
-            times,
-            all_niter,
-            all_flops,
-            all_lops,
-            all_comm_times
+        jacobi_time_array = times - all_comm_times
+        save_and_validate_results(
+            csv_path=csv_path,
+            run_type=f"{Path(__file__).stem}_DIM{DECOMB_DIM}_AXES{'-'.join(map(str, DECOMB_AXES))}",
+            run_id=RUN_ID,
+            n_ranks=size,
+            N=N,
+            max_iter=MAX_ITER,
+            n_iterations=n_iter,
+            tolerance=TOLERANCE,
+            init_value=INIT_VALUE,
+            jacobi_time=jacobi_time_array,
+            comm_time=all_comm_times,
+            flops=all_flops,
+            lups=all_lops,
         )
     

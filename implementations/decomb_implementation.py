@@ -1,7 +1,6 @@
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
-import csv
 from sys import argv
 from math import prod
 from pathlib import Path
@@ -13,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so ut
 from implementations.sequential import get_run_parameters
 from utils.datatypes import get_datatypes_all
 from implementations.sequential import plot_convergence
-from utils.benchmark import save_and_validate_results, validate_result
+from utils.benchmark import save_and_validate_results
 
 
 def calculate_slice_shape(N, dims, rank):
@@ -129,49 +128,6 @@ def write_results_to_file(comm, u_curr, global_idx, N, solution_path):
         fh.Close()
         filetype.Free()
 
-def append_results(csv_path, run_id, N, size, decomb_dim, decomb_axes,
-                   tolerance, max_iter, init_value, times, n_iter, flops, lops, comm_times):
-    if csv_path is None:
-        csv_path = Path("results/raw/decomb_implementation") / run_id
-
-    csv_path = Path(csv_path)
-    if csv_path.suffix != ".csv":
-        csv_path = csv_path / (
-            f"np{size}_N{N}_dim{decomb_dim}_axes{'-'.join(map(str, decomb_axes))}"
-            f"_iter{max_iter}_tol{tolerance}_init{init_value}.csv"
-        )
-
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    columns = [
-        "run_id", "N", "size", "decomb_dim", "decomb_axes",
-        "tolerance", "max_iter", "init_value",
-        "rank", "time","n_iter", "flops", "lops","comm_time"
-    ]
-
-    with csv_path.open("a", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        if csvfile.tell() == 0:
-            writer.writerow(columns)
-
-        axes_text = str(list(decomb_axes))
-        for rank in range(size):
-            writer.writerow([
-                run_id,
-                int(N),
-                int(size),
-                int(decomb_dim),
-                axes_text,
-                float(tolerance),
-                int(max_iter),
-                int(init_value),
-                int(rank),
-                float(times[rank]),
-                int(n_iter[rank]),
-                float(flops[rank]),
-                float(lops[rank]),
-                float(comm_times[rank])
-            ])
-
 def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
          DECOMB_AXES, solution_path):
     # Setup communication
@@ -273,63 +229,58 @@ if __name__ == "__main__":
     N = 100
     MAX_ITER = 10000
     TOLERANCE = 10e-5
-    INIT_VALUE = 0
+    INIT_VALUE = 10
     PLOT = True
     DECOMB_DIM = 3
     DECOMB_AXES = [0,1,2]
-    solution_path = "results/solutions/my.bin"
-    csv_path = None
+    solution_path = Path("results/decomb")
+    CSV_PATH = None
+    RUN_TYPE = Path(__file__).stem
 
     argv = sys.argv[1:]
-    if len(argv) == 9:
-        N = int(argv[0])
-        MAX_ITER = int(argv[1])
-        TOLERANCE = float(argv[2])
-        INIT_VALUE = int(argv[3])
-        PLOT = argv[4].lower() == "true"
-        solution_path = Path(argv[5])
-        csv_path = Path(argv[6])
-        DECOMB_DIM = int(argv[7])
-        DECOMB_AXES = [int(axis) for axis in argv[8].split(",")]
-
+    try:
+        N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, DECOMB_DIM, DECOMB_AXES = get_run_parameters()
+    except:
+        print("Error parsing command line arguments. Using default values.")
 
     RUN_ID = os.environ.get("RUN_ID", "manual-run")
     if MPI.COMM_WORLD.rank == 0:
         solution_path.parent.mkdir(parents=True, exist_ok=True)
     MPI.COMM_WORLD.Barrier()
-    rank, size, time, n_iter, flops, lops, comm_time = main(
+
+    rank, n_ranks, time, n_iterations, flops, lops, comm_time = main(
         N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT,
         DECOMB_DIM, DECOMB_AXES, solution_path,
     )
 
     comm = MPI.COMM_WORLD
-    times = np.zeros(size, dtype=np.float64) if rank == 0 else None
-    all_niter = np.zeros(size, dtype=np.float64) if rank == 0 else None
-    all_flops = np.zeros(size, dtype=np.float64) if rank == 0 else None
-    all_lops = np.zeros(size, dtype=np.float64) if rank == 0 else None
-    all_comm_times = np.zeros(size, dtype=np.float64) if rank == 0 else None
+    total_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    all_niter = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    flops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    lops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    comm_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
 
-    comm.Gather(np.array([time], dtype=np.float64), times, root=0)
-    comm.Gather(np.array([n_iter], dtype=np.float64), all_niter, root=0)
-    comm.Gather(np.array([flops], dtype=np.float64), all_flops, root=0)
-    comm.Gather(np.array([lops], dtype=np.float64), all_lops, root=0)
-    comm.Gather(np.array([comm_time], dtype=np.float64), all_comm_times, root=0)
+    comm.Gather(np.array([time], dtype=np.float64), total_time_array, root=0)
+    comm.Gather(np.array([n_iterations], dtype=np.float64), all_niter, root=0)
+    comm.Gather(np.array([flops], dtype=np.float64), flops_array, root=0)
+    comm.Gather(np.array([lops], dtype=np.float64), lops_array, root=0)
+    comm.Gather(np.array([comm_time], dtype=np.float64), comm_time_array, root=0)
 
     if rank == 0:
-        append_results(
-            csv_path,
-            RUN_ID,
-            N,
-            size,
-            DECOMB_DIM,
-            DECOMB_AXES,
-            TOLERANCE,
-            MAX_ITER,
-            INIT_VALUE,
-            times,
-            all_niter,
-            all_flops,
-            all_lops,
-            all_comm_times
-        )
+        jacobi_time_array = total_time_array - comm_time_array
+        is_valid =  save_and_validate_results(
+            csv_path = CSV_PATH, 
+            run_type = f"{RUN_TYPE}_DIM{DECOMB_DIM}_AXES{'-'.join(map(str, DECOMB_AXES))}", 
+            run_id = RUN_ID, 
+            n_ranks = n_ranks, 
+            N = N, 
+            max_iter = MAX_ITER, 
+            n_iterations = n_iterations, 
+            tolerance = TOLERANCE, 
+            init_value = INIT_VALUE, 
+            jacobi_time = jacobi_time_array,
+            comm_time = comm_time_array,
+            flops = flops_array,
+            lups = lops_array
+            )
     
