@@ -13,7 +13,10 @@ marius_playground.py
 *.html
 *.mpiP
 /results/profile/**/*.csv
+/results/logs
+/results/raw
 *.err
 *.out
 results/my_results
 *.csv
+results/my_results

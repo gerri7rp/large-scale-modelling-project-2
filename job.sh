@@ -5,8 +5,8 @@
 # LSF CONFIGURATION
 # --------------------------------------------------
 #BSUB -q hpc
-#BSUB -W 26:00
-#BSUB -M 1GB
+#BSUB -W 00:05
+#BSUB -M 4GB
 #BSUB -R "rusage[mem=4GB] select[model == XeonE5_2650v4]"
 #BSUB -oo Output_MB.%J.out
 #BSUB -eo Output_MB.%J.err
@@ -56,8 +56,8 @@ echo "Solution path:  $SOLUTION_PATH"
 # --------------------------------------------------
 # RUN
 # --------------------------------------------------
-mpirun -np "$NP" python3 "$FILE_PATH" \
-    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH" "$SOLUTION_PATH"
+mpirun -np "$NP" // "$CPU_PER_RANK" python3 "$FILE_PATH" \
+    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH" "$SOLUTION_PATH" "$CPU_PER_RANK"
 
 STATUS=$?
 

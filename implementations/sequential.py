@@ -3,38 +3,18 @@ from pathlib import Path
 
 import numpy as np
 import os
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
 from utils.benchmark import save_and_validate_results, validate_result
-
+from utils.tools import get_run_parameters
 
 N = 300
 MAX_ITER = 10000
 TOLERANCE = 10e-6
 INIT_VALUE = 10
 PLOT = False
-
-def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
-    argv = sys.argv[1:]
-    if argv:
-        N = int(argv.pop(0))
-    if argv:
-        MAX_ITER = int(argv.pop(0))
-    if argv:
-        TOLERANCE = float(argv.pop(0))
-    if argv:
-        INIT_VALUE = int(argv.pop(0))
-    if argv:
-        PLOT = argv.pop(0).lower() in ("true", "1", "yes")  # bool("False") would be True
-    if argv:
-        csv_path = Path(argv.pop(0))
-    if argv:
-        solution_path = Path(argv.pop(0))
-
-    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path
-
-
 
 def source(N):
     # Interior points of [-1, 1] with N+2 points including the boundary
@@ -76,24 +56,25 @@ def solve(N, max_iter, tolerance, init_value):
 
     for i in range(max_iter):
         u_new = jacobi_step(u_curr, d2f, N)
-        diff = norm(u_curr, u_new)
+        # diff = norm(u_curr, u_new)
         u_curr[1: N + 1, 1: N + 1, 1: N + 1] = u_new
-        convergence_hist.append(diff)
+        # convergence_hist.append(diff)
 
-        if diff < tolerance:
-            break
+        # if diff < tolerance:
+            # break
 
     return u_curr, convergence_hist, i
 
 
 if __name__ == "__main__":
     N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    total_time_array = time.time()
     u, convergence_hist, i = solve(N, MAX_ITER, TOLERANCE, INIT_VALUE)
-
-    if i + 1== MAX_ITER:
-        print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
-    else:
-        print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
+    total_time_array = np.array([time.time() - total_time_array])
+    # if i + 1== MAX_ITER:
+    #     print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
+    # else:
+    #     print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
     
 
     if PLOT == True:
@@ -109,10 +90,10 @@ if __name__ == "__main__":
     n_ranks = 1
     chunk_size = 0
     
-    is_valid =  save_and_validate_results(
+    _, _ =  save_and_validate_results(
         matrix=u, csv_path=csv_path, run_type=RUN_TYPE, run_id=RUN_ID, n_ranks=n_ranks, 
         chunk_size=chunk_size, N=N, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, time_compute=[0], time_comm=[0], time_wait=[0]
     )
 
-    if not is_valid:
-        print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")
+    # if not is_valid:
+    #     print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")
