@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
 
 
-    RUN_TYPE = script_name = Path(__file__).stem
+    RUN_TYPE = Path(__file__).stem
     RUN_ID   = os.environ.get("RUN_ID", "manual-run")
     n_ranks = 1
     chunk_size = 0

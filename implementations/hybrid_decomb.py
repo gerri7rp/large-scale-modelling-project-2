@@ -241,19 +241,19 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, DECOMB_DIM,
     # Write to file
     # write_results_to_file(cart_comm, u_curr, global_idx, N, solution_path)
 
-    # Calculate flops and lups
+    # Calculate flops and lops
     Nx, Ny, Nz = u_curr.shape
     local_points = (Nx - 2) * (Ny - 2) * (Nz - 2)
     n_iter = i + 1
     flops = (7 * local_points * n_iter) / time
-    lups = (local_points * n_iter) / time
+    lops = (local_points * n_iter) / time
 
     # Plot 
     if (PLOT == True) and (rank == 0):
         print(f"Total time: {time}")
         plot_convergence(convergence_hist, TOLERANCE, title=f"Jacobi convergence, N = {N}")
         
-    return rank, size, time, n_iter, flops, lups, comm_time
+    return rank, size, time, n_iter, flops, lops, comm_time
 
 
 

@@ -11,15 +11,15 @@ RESULTS_DIR = Path(
 )
 
 
-def save_and_validate_results(csv_path, run_type, run_id, n_ranks, chunk_size, N, max_iter, n_iterations, tolerance,
-                               init_value, initialization_time, jacobi_time, comm_time, total_time, flops, lups):
+def save_and_validate_results(csv_path, run_type, run_id, n_ranks, N, max_iter, n_iterations, tolerance,
+                               init_value, jacobi_time, comm_time, flops, lops):
     # is_valid = validate_result(matrix)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     columns = [
         "run_id", "type", "n_ranks", "rank", "chunk_size", "N", "max_iter", "n_iterations",
-        "tolerance", "init_value", "initialization_time", "jacobi_time", "comm_time", "t_total", "flops", "lups"
+        "tolerance", "init_value", "initialization_time", "jacobi_time", "comm_time", "t_total", "flops", "lops"
     ]
 
     # Append rows for this experiment.
@@ -33,10 +33,10 @@ def save_and_validate_results(csv_path, run_type, run_id, n_ranks, chunk_size, N
             
 
             writer.writerow([
-                run_id, run_type, n_ranks, rank, chunk_size,
+                run_id, run_type, n_ranks, rank,
                 int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), 
-                float(initialization_time[rank]), float(jacobi_time[rank]),float(comm_time[rank]),
-                float(total_time[rank]), float(flops[rank]), float(lups[rank])
+                 float(jacobi_time[rank]),float(comm_time[rank]),
+              float(flops[rank]), float(lops[rank])
             ])
 
     return f"Results saved to CSV file: {csv_path}.", True
