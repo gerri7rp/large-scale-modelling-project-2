@@ -16,3 +16,4 @@ marius_playground.py
 *.err
 *.out
 results/my_results
+*.csv

@@ -28,7 +28,7 @@ IMPLEMENTATIONS=(
 # PARAMETERS
 # --------------------------------------------------
 ### FOR WEAK
-PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
+PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32 48 72)
 N_VALUES=()
 for p in "${PROCESS_COUNTS[@]}"; do
     N_VALUES+=("$(python3 -c "print(round(48 * $p ** (1/3)))")")
@@ -36,7 +36,7 @@ done
 ###
 
 ### FOR STRONG
-# PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
+# PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32 48 72)
 # STRONG_N=96
 # N_VALUES=()   # same N for every process count
 # for p in "${PROCESS_COUNTS[@]}"; do
