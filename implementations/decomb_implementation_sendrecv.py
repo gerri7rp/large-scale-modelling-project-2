@@ -1,4 +1,3 @@
-from implementations.sendrecv_implementation import CSV_PATH
 import mpi4py.MPI as MPI
 import numpy as np
 import sys
@@ -10,10 +9,10 @@ from time import perf_counter
 from numba import jit
 import os
 
-from utils.benchmark import save_and_validate_results
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
-from implementations.sequential import RUN_TYPE, get_run_parameters
+from utils.benchmark import save_and_validate_results
+from implementations.sequential import get_run_parameters
 from utils.datatypes import get_datatypes_all
 from implementations.sequential import plot_convergence
 from utils.tools import get_run_parameters
@@ -220,12 +219,13 @@ if __name__ == "__main__":
     PLOT = True
     DECOMB_DIM = 3
     DECOMB_AXES = [0,1,2]
-    solution_path = "results/solutions/my.bin"
+    solution_path = Path("results/decomb")
     CSV_PATH = None
+    RUN_TYPE = Path(__file__).stem
 
     argv = sys.argv[1:]
     try:
-        N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, SOLUTION_PATH, DECOMB_DIM, DECOMB_AXES = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+        N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, DECOMB_DIM, DECOMB_AXES = get_run_parameters()
     except:
         print("Error parsing command line arguments. Using default values.")
 
@@ -252,21 +252,21 @@ if __name__ == "__main__":
     comm.Gather(np.array([lops], dtype=np.float64), lops_array, root=0)
     comm.Gather(np.array([comm_time], dtype=np.float64), comm_time_array, root=0)
 
-    jacobi_time_array = total_time_array - comm_time_array
-    is_valid =  save_and_validate_results(
-        csv_path = CSV_PATH, 
-        run_type = f"{RUN_TYPE}_DIM{DECOMB_DIM}_AXES{'-'.join(map(str, DECOMB_AXES))}", 
-        run_id = RUN_ID, 
-        n_ranks = n_ranks, 
-        chunk_size = 0, 
-        N = N, 
-        max_iter = MAX_ITER, 
-        n_iterations = n_iterations, 
-        tolerance = TOLERANCE, 
-        init_value = INIT_VALUE, 
-        jacobi_time = jacobi_time_array,
-        comm_time = comm_time_array,
-        flops = flops_array,
-        lops = lops_array
-        )
+    if rank == 0:
+        jacobi_time_array = total_time_array - comm_time_array
+        is_valid =  save_and_validate_results(
+            csv_path = CSV_PATH, 
+            run_type = f"{RUN_TYPE}_DIM{DECOMB_DIM}_AXES{'-'.join(map(str, DECOMB_AXES))}", 
+            run_id = RUN_ID, 
+            n_ranks = n_ranks, 
+            N = N, 
+            max_iter = MAX_ITER, 
+            n_iterations = n_iterations, 
+            tolerance = TOLERANCE, 
+            init_value = INIT_VALUE, 
+            jacobi_time = jacobi_time_array,
+            comm_time = comm_time_array,
+            flops = flops_array,
+            lups = lops_array
+            )
     
