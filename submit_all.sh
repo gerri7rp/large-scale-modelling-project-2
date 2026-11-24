@@ -33,7 +33,6 @@ N_VALUES=()
 for p in "${PROCESS_COUNTS[@]}"; do
     N_VALUES+=("$(python3 -c "print(round(300 * $p ** (1/3)))")")
 done
-###
 
 ### FOR STRONG
 # PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
@@ -43,7 +42,9 @@ done
 #     N_VALUES+=("$STRONG_N")
 # done
 ###
-MAX_ITER_VALUES=(3)
+
+
+MAX_ITER_VALUES=(50 100 200 300 400)
 TOLERANCE_VALUES=(10e-15)
 INIT_VALUE_VALUES=(0)
 PLOT_VALUES=(False)

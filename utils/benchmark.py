@@ -30,6 +30,8 @@ def save_and_validate_results(matrix, csv_path, run_type, run_id, n_ranks, chunk
             writer.writerow(columns)
 
         for rank in range(n_ranks):
+            
+
             writer.writerow([
                 run_id, run_type, is_valid, n_ranks, rank, chunk_size,
                 int(N), int(max_iter), int(n_iterations), float(tolerance), int(init_value), 
