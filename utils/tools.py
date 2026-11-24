@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
+def get_run_parameters():
     argv = sys.argv[1:]
     if argv:
         N = int(argv.pop(0))
@@ -16,10 +16,8 @@ def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
     if argv:
         csv_path = Path(argv.pop(0))
     if argv:
-        solution_path = Path(argv.pop(0))
-    if argv:
         DECOMB_DIM = int(argv.pop(0))
     if argv:
         DECOMB_AXES = [int(axis) for axis in argv.pop(0).split(",")]
 
-    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path, DECOMB_DIM, DECOMB_AXES
+    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, DECOMB_DIM, DECOMB_AXES
