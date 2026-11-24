@@ -1,2 +1,0 @@
-run_id,type,is_valid,n_ranks,rank,chunk_size,N,max_iter,n_iterations,tolerance,init_value,initialization_time,jacobi_time,fileWriting_time,t_total,flops,lups
-2026-11-24_0925,sequential,,1,0,0,300,500,499,1e-14,0,0.0,0.0,0.0,283.5793950557709,0.0,0.0
