@@ -8,34 +8,13 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
 from utils.benchmark import save_and_validate_results, validate_result
-
+from utils.tools import get_run_parameters
 
 N = 300
 MAX_ITER = 10000
 TOLERANCE = 10e-6
 INIT_VALUE = 10
 PLOT = False
-
-def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
-    argv = sys.argv[1:]
-    if argv:
-        N = int(argv.pop(0))
-    if argv:
-        MAX_ITER = int(argv.pop(0))
-    if argv:
-        TOLERANCE = float(argv.pop(0))
-    if argv:
-        INIT_VALUE = int(argv.pop(0))
-    if argv:
-        PLOT = argv.pop(0).lower() in ("true", "1", "yes")  # bool("False") would be True
-    if argv:
-        csv_path = Path(argv.pop(0))
-    if argv:
-        solution_path = Path(argv.pop(0))
-
-    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path
-
-
 
 def source(N):
     # Interior points of [-1, 1] with N+2 points including the boundary

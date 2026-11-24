@@ -75,7 +75,6 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
     LHS_dt.Commit()
     RHS_dt.Commit()
 
-    initialization_time = np.array([perf_counter() - initialization_time])
 
 
     ### 2. JACOBI COMPUTATION 
@@ -97,7 +96,7 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
     fileWriting_time = np.array([perf_counter() - fileWriting_time])
 
 
-    return rank, comm, size, u_curr, i, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time
+    return rank, comm, size, u_curr, i, flops, lups, convergence_hist, jacobi_time, fileWriting_time
 
 
 
@@ -114,14 +113,13 @@ if __name__ == "__main__":
 
     # Main
     t0 = perf_counter()
-    rank, comm, n_ranks, u, n_iterations, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH)
+    rank, comm, n_ranks, u, n_iterations, flops, lups, convergence_hist, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH)
     total_time = np.array([perf_counter() - t0])
 
 
 
     # Rank 0 gathers data from all ranks
     if rank == 0:
-        initialization_time_array = np.zeros(n_ranks, dtype = np.float64)
         jacobi_time_array         = np.zeros(n_ranks, dtype = np.float64)
         fileWriting_time_array    = np.zeros(n_ranks, dtype = np.float64)
         total_time_array          = np.zeros(n_ranks, dtype = np.float64)
@@ -129,10 +127,9 @@ if __name__ == "__main__":
         lups_array                = np.zeros(n_ranks, dtype = np.float64)
 
     else:
-        initialization_time_array, jacobi_time_array, fileWriting_time_array, total_time_array = None, None, None, None
+        jacobi_time_array, fileWriting_time_array, total_time_array = None, None, None
         flops_array, lups_array = None, None
 
-    comm.Gather(initialization_time, initialization_time_array, root = 0)
     comm.Gather(jacobi_time,         jacobi_time_array,         root = 0)
     comm.Gather(fileWriting_time,    fileWriting_time_array,    root = 0)
     comm.Gather(total_time,          total_time_array,          root = 0)
@@ -148,8 +145,7 @@ if __name__ == "__main__":
         if PLOT:
             handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, SOLUTION_PATH, N)
 
-        is_valid =  save_and_validate_results(
-            matrix = u, 
+        is_valid =  save_and_validate_results( 
             csv_path = CSV_PATH, 
             run_type = RUN_TYPE, 
             run_id = RUN_ID, 
@@ -160,7 +156,6 @@ if __name__ == "__main__":
             n_iterations = n_iterations, 
             tolerance = TOLERANCE, 
             init_value = INIT_VALUE, 
-            initialization_time = initialization_time_array, 
             jacobi_time = jacobi_time_array,
             fileWriting_time = fileWriting_time_array, 
             total_time = total_time_array,
