@@ -42,25 +42,47 @@ def get_datatypes_all(arr: np.ndarray):
     # Get array information
     Nx,Ny,Nz = arr.shape
 
-    # Left boundary
-    left = MPI.DOUBLE.Create_subarray(
+    # Send dataTypes
+    left_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (1, Ny, Nz), (1, 0, 0), order=MPI.ORDER_C
     )
-    right = MPI.DOUBLE.Create_subarray(
+    right_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (1, Ny, Nz), (Nx - 2, 0, 0), order=MPI.ORDER_C
     )
-    front = MPI.DOUBLE.Create_subarray(
+    front_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (Nx, 1, Nz), (0, 1, 0), order=MPI.ORDER_C
     )
-    back = MPI.DOUBLE.Create_subarray(
+    back_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (Nx, 1, Nz), (0, Ny-2, 0), order=MPI.ORDER_C
     )
-    buttom = MPI.DOUBLE.Create_subarray(
+    buttom_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (Nx, Ny, 1), (0, 0, 1), order=MPI.ORDER_C
     )
-    top = MPI.DOUBLE.Create_subarray(
+    top_send = MPI.DOUBLE.Create_subarray(
         arr.shape, (Nx, Ny, 1), (0, 0, Nz-2), order=MPI.ORDER_C
     )
 
+    # Recv datatypes
+    left_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (1, Ny, Nz), (0, 0, 0), order=MPI.ORDER_C
+    )
+    right_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (1, Ny, Nz), (Nx - 1, 0, 0), order=MPI.ORDER_C
+    )
+    front_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, 1, Nz), (0, 0, 0), order=MPI.ORDER_C
+    )
+    back_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, 1, Nz), (0, Ny-1, 0), order=MPI.ORDER_C
+    )
+    buttom_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, Ny, 1), (0, 0, 0), order=MPI.ORDER_C
+    )
+    top_recv = MPI.DOUBLE.Create_subarray(
+        arr.shape, (Nx, Ny, 1), (0, 0, Nz-1), order=MPI.ORDER_C
+    )
 
-    return left, right, front, back, buttom, top
+    re = [left_send, right_send, front_send, back_send, buttom_send, top_send,
+          left_recv, right_recv, front_recv, back_recv, buttom_recv, top_recv]
+    
+    return re

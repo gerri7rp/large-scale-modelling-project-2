@@ -97,14 +97,13 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
         u_new = jacobi_step_slice(u_curr, d2f, N, N_slice)
 
 
-        if i % 10 == 0:
-            local_diff = norm(u_curr, u_new)
-            diff = comm.allreduce(local_diff, op=MPI.MAX) # to ensure entire cube, and not just current slice, has converges
-            convergence_hist.append(diff)
-            if diff < tolerance:
-                u_curr[1:-1, 1:-1, 1:-1] = u_new
-                break
-        
+        local_diff = norm(u_curr, u_new)
+        diff = comm.allreduce(local_diff, op=MPI.MAX) # to ensure entire cube, and not just current slice, has converges
+        convergence_hist.append(diff)
+        if diff < tolerance:
+            u_curr[1:-1, 1:-1, 1:-1] = u_new
+            break
+
         u_curr[1:-1, 1:-1, 1:-1] = u_new
         
     time = perf_counter() - t0

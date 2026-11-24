@@ -15,3 +15,6 @@ marius_playground.py
 /results/profile/**/*.csv
 /results/logs
 /results/raw
+*.err
+*.out
+results/my_results
