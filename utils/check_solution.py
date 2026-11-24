@@ -42,13 +42,59 @@ def is_solution_correct(matrix: np.array, atol) -> bool:
     return is_valid
 
 
-if __name__ == "__main__":
-    from utils.plotting import plot_planes
-    N = 100
-    solution = np.fromfile(
-        "results/solutions/my.bin",
-        dtype=np.float64,
-    ).reshape((N, N, N))
+def plot_saved_result_vs_analytical(
+    solution_path: str | Path,
+    z: float = 0.5,
+    atol: float | None = None,
+    show: bool = True,
+):
+    """Load a binary 3D result and plot a slice against the analytical solution.
 
-    is_solution_correct(solution, atol=1e-4)
+    The file is assumed to contain only the interior points, in C/NumPy order,
+    with shape (N, N, N).
+    """
+    import matplotlib.pyplot as plt
+
+    solution_path = Path(solution_path)
+    flat_result = np.fromfile(solution_path, dtype=np.float64)
+
+    if flat_result.size == 0:
+        raise ValueError(f"Solution file is empty: {solution_path}")
+
+    side_length = round(flat_result.size ** (1 / 3))
+    if side_length ** 3 != flat_result.size:
+        raise ValueError(
+            f"Solution file contains {flat_result.size} values, which cannot form "
+            "a cubic (N, N, N) result"
+        )
+
+    result = flat_result.reshape((side_length, side_length, side_length))
+    points = np.linspace(-1.0, 1.0, side_length + 2)[1:-1]
+
+    title = f"solution_check/{solution_path.stem}_N{side_length}"
+
+    from utils.plotting import plot_slice_vs_analytical
+
+    plot_slice_vs_analytical(result, points, z=z, title=title)
+
+    if atol is not None:
+        is_correct = is_solution_correct(result, atol=atol)
+        print(
+            f"{solution_path}: result {'matches' if is_correct else 'does not match'} "
+            f"the analytical solution at atol={atol:g}"
+        )
+
+    if show:
+        plt.show()
+
+    return result
+
+
+if __name__ == "__main__":
+    solution_path = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else Path("results/my.bin")
+    )
+    plot_saved_result_vs_analytical(solution_path, atol=1e-4)
 
