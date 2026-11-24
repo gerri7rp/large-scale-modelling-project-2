@@ -92,10 +92,10 @@ if __name__ == "__main__":
     total_time_array = time.time()
     u, convergence_hist, i = solve(N, MAX_ITER, TOLERANCE, INIT_VALUE)
     total_time_array = np.array([time.time() - total_time_array])
-    if i + 1== MAX_ITER:
-        print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
-    else:
-        print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
+    # if i + 1== MAX_ITER:
+    #     print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
+    # else:
+    #     print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
     
 
     if PLOT == True:
