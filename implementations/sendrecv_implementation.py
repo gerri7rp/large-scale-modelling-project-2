@@ -50,7 +50,7 @@ def write_results_to_file(comm, u_curr, SOLUTION_PATH):
     fh.Close()
 
 
-def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
+def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
     ### 1. INITIALIZATION
     initialization_time = perf_counter()
 
@@ -109,28 +109,26 @@ if __name__ == "__main__":
     PLOT = True
 
     # Get run parameters from the command line
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, SOLUTION_PATH = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, DECOMB_DIM, DECOMB_AXES = get_run_parameters()
 
     # Main
     t0 = perf_counter()
-    rank, comm, n_ranks, u, n_iterations, flops, lops, convergence_hist, total_time, comm_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH)
+    rank, comm, n_ranks, u, n_iterations, flops, lops, convergence_hist, total_time, comm_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE)
 
 
 
     # Rank 0 gathers data from all ranks
-    if rank == 0:
-        total_time_array         = np.zeros(n_ranks, dtype = np.float64)
-        comm_time_array           = np.zeros(n_ranks, dtype = np.float64)
-        flops_array               = np.zeros(n_ranks, dtype = np.float64)
-        lops_array                = np.zeros(n_ranks, dtype = np.float64)
-    else:
-        total_time_array, comm_time_array = None, None
-        flops_array, lops_array = None, None
+    total_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    all_niter = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    flops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    lops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    comm_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
 
-    comm.Gather(total_time,          total_time_array,          root = 0)
-    comm.Gather(comm_time,           comm_time_array,           root = 0)
-    comm.Gather(flops,               flops_array,               root = 0)
-    comm.Gather(lops,                lops_array,                root = 0)
+    comm.Gather(np.array([total_time], dtype=np.float64), total_time_array, root=0)
+    comm.Gather(np.array([n_iterations], dtype=np.float64), all_niter, root=0)
+    comm.Gather(np.array([flops], dtype=np.float64), flops_array, root=0)
+    comm.Gather(np.array([lops], dtype=np.float64), lops_array, root=0)
+    comm.Gather(np.array([comm_time], dtype=np.float64), comm_time_array, root=0)
     
 
     # Rank 0 saves all the data in a csv
@@ -139,8 +137,8 @@ if __name__ == "__main__":
         RUN_TYPE = Path(__file__).stem
         RUN_ID   = os.environ.get("RUN_ID", "manual-run")
 
-        if PLOT:
-            handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, SOLUTION_PATH, N)
+        #if PLOT:
+        #    handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, N)
 
         is_valid =  save_and_validate_results( 
             csv_path = CSV_PATH, 

@@ -117,7 +117,7 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
     flops = ((n_flops_jacobi * M) * n_iter + n_flops_norm * len(convergence_hist)) / time
     lops = (M * n_iter) / time
 
-    return u_curr, convergence_hist, i, flops, lops, t_comm
+    return u_curr, convergence_hist, n_iter, flops, lops, t_comm
 
 
     
