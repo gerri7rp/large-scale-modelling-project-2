@@ -67,12 +67,12 @@ def sendrecv_sliceedges(u_curr_slice, neighbors, dim2datatype, dims, comm):
         l_send, r_send, l_recv, r_recv = dim2datatype[i]
         
         # Create recv buffers
-        ghost_left = [slice(None)] * u_curr_slice.ndim
-        ghost_right = [slice(None)] * u_curr_slice.ndim
-        ghost_left[i] = 0
-        ghost_right[i] = -1
-        ghost_left = tuple(ghost_left)
-        ghost_right = tuple(ghost_right)
+        # ghost_left = [slice(None)] * u_curr_slice.ndim
+        # ghost_right = [slice(None)] * u_curr_slice.ndim
+        # ghost_left[i] = 0
+        # ghost_right[i] = -1
+        # ghost_left = tuple(ghost_left)
+        # ghost_right = tuple(ghost_right)
 
         # Send and recieve data
         comm.Sendrecv(
@@ -273,7 +273,7 @@ if __name__ == "__main__":
     N = 100
     MAX_ITER = 10000
     TOLERANCE = 10e-5
-    INIT_VALUE = 10
+    INIT_VALUE = 0
     PLOT = True
     DECOMB_DIM = 3
     DECOMB_AXES = [0,1,2]

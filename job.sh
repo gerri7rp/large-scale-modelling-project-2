@@ -5,8 +5,8 @@
 # LSF CONFIGURATION
 # --------------------------------------------------
 #BSUB -q hpc
-#BSUB -W 26:00
-#BSUB -M 1GB
+#BSUB -W 00:05
+#BSUB -M 4GB
 #BSUB -R "rusage[mem=4GB] select[model == XeonE5_2650v4]"
 #BSUB -oo Output_MB.%J.out
 #BSUB -eo Output_MB.%J.err

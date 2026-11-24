@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import os
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
@@ -76,24 +77,25 @@ def solve(N, max_iter, tolerance, init_value):
 
     for i in range(max_iter):
         u_new = jacobi_step(u_curr, d2f, N)
-        diff = norm(u_curr, u_new)
+        # diff = norm(u_curr, u_new)
         u_curr[1: N + 1, 1: N + 1, 1: N + 1] = u_new
-        convergence_hist.append(diff)
+        # convergence_hist.append(diff)
 
-        if diff < tolerance:
-            break
+        # if diff < tolerance:
+            # break
 
     return u_curr, convergence_hist, i
 
 
 if __name__ == "__main__":
     N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    total_time_array = time.time()
     u, convergence_hist, i = solve(N, MAX_ITER, TOLERANCE, INIT_VALUE)
-
-    if i + 1== MAX_ITER:
-        print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
-    else:
-        print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
+    total_time_array = np.array([time.time() - total_time_array])
+    # if i + 1== MAX_ITER:
+    #     print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")    
+    # else:
+    #     print(f"Reached tolerance after {i} iterations of max {MAX_ITER} \n ")  
     
 
     if PLOT == True:

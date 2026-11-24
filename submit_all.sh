@@ -44,9 +44,9 @@ N_VALUES=(800)
 # done
 ###
 CPU_PER_RANK = 2
-MAX_ITER_VALUES=(200)
+MAX_ITER_VALUES=(50 100 200 300 400)
 TOLERANCE_VALUES=(10e-15)
-INIT_VALUE_VALUES=(10)
+INIT_VALUE_VALUES=(0)
 PLOT_VALUES=(False)
 
 # --------------------------------------------------
