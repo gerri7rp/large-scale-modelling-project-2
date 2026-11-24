@@ -6,7 +6,7 @@
 # --------------------------------------------------
 #BSUB -q hpcintro
 #BSUB -W 04:00
-#BSUB -M 1500MB
+#BSUB -M 4GB
 #BSUB -R "select[model == XeonE5_2650v4]"
 #BSUB -oo Output_MB.%J.out
 #BSUB -eo Output_MB.%J.err
@@ -21,18 +21,18 @@ module load mpi4py/4.0.3-python-3.12.11-openmpi-5.0.8
 # IMPLEMENTATIONS
 # --------------------------------------------------
 IMPLEMENTATIONS=(
-    sendrecv_implementation.py
+    hybrid_decomb.py
 )
 
 # --------------------------------------------------
 # PARAMETERS
 # --------------------------------------------------
 ### FOR WEAK
-PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
-N_VALUES=()
-for p in "${PROCESS_COUNTS[@]}"; do
-    N_VALUES+=("$(python3 -c "print(round(48 * $p ** (1/3)))")")
-done
+PROCESS_COUNTS=(2 4 8)
+N_VALUES=(800)
+# for p in "${PROCESS_COUNTS[@]}"; do
+#     N_VALUES+=("$(python3 -c "print(round(48 * $p ** (1/3)))")")
+# done
 ###
 
 ### FOR STRONG
@@ -43,7 +43,8 @@ done
 #     N_VALUES+=("$STRONG_N")
 # done
 ###
-MAX_ITER_VALUES=(500)
+CPU_PER_RANK = 2
+MAX_ITER_VALUES=(200)
 TOLERANCE_VALUES=(10e-15)
 INIT_VALUE_VALUES=(10)
 PLOT_VALUES=(False)
@@ -108,7 +109,7 @@ for script in "${IMPLEMENTATIONS[@]}"; do
                                 -R "span[ptile=24]" \
                                 -oo "${LOG_DIR}/${LOG_NAME}.out" \
                                 -eo "${LOG_DIR}/${LOG_NAME}.err" \
-                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME,SOLUTION_PATH=$SOLUTION_PATH" \
+                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME,SOLUTION_PATH=$SOLUTION_PATH,CPU_PER_RANK=$CPU_PER_RANK" \
                                 < job.sh
 
                             if [ $? -eq 0 ]; then
