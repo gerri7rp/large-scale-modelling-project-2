@@ -76,12 +76,12 @@ def solve(N, max_iter, tolerance, init_value):
 
     for i in range(max_iter):
         u_new = jacobi_step(u_curr, d2f, N)
-        diff = norm(u_curr, u_new)
+        # diff = norm(u_curr, u_new)
         u_curr[1: N + 1, 1: N + 1, 1: N + 1] = u_new
-        convergence_hist.append(diff)
+        # convergence_hist.append(diff)
 
-        if diff < tolerance:
-            break
+        # if diff < tolerance:
+            # break
 
     return u_curr, convergence_hist, i
 
