@@ -89,11 +89,14 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
     convergence_hist = []
 
     t0 = perf_counter() # Time
+    t_comm = 0
     for i in range(max_iter):
+        t0_comm = perf_counter()
         # Get the edges
         u_curr[0,:,:], u_curr[-1,:,:] = sendrecv_sliceedges(rank=rank, size=size, u_curr_slice=u_curr, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=comm)
         comm.Barrier() # Don't know if this is needed, but to ensure that all edges has been recved before computing new values
         # Do jacobi
+        t_comm += perf_counter() - t0_comm
         u_new = jacobi_step_slice(u_curr, d2f, N, N_slice)
 
 
@@ -112,9 +115,9 @@ def solve_slice(N, N_slice, slice_idx, max_iter, tolerance, init_value, rank, si
     n_flops_norm = M # this doesnt count abs as a flop
     n_flops_jacobi = 7
     flops = ((n_flops_jacobi * M) * n_iter + n_flops_norm * len(convergence_hist)) / time
-    lups = (M * n_iter) / time
+    lops = (M * n_iter) / time
 
-    return u_curr, convergence_hist, i, flops, lups
+    return u_curr, convergence_hist, n_iter, flops, lops, t_comm
 
 
     

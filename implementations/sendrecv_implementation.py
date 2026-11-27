@@ -8,8 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so ut
 from utils.datatypes import get_datatypes
 from utils.sendrecv_sliceedges import sendrecv_sliceedges, init_slice, solve_slice
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
-from utils.benchmark import save_and_validate_results, validate_result
-from implementations.sequential import get_run_parameters
+from utils.benchmark import save_and_validate_results
+from utils.tools import get_run_parameters
 
 
 
@@ -39,23 +39,6 @@ def handle_plots(convergence_hist, tolerance, max_iter, n_ranks, file, N):
     pts = np.linspace(-1, 1, N + 2)[1:-1]
     plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {n_ranks}, {n_iter} iterations")
 
-    # Harris changes?? 
-    # if rank == 0:
-    #     n_iter = i + 1  # history is only recorded every 10th iteration
-    #     if n_iter == MAX_ITER and convergence_hist[-1] >= TOLERANCE:
-    #         print(f"Max iterations reached: diff:{convergence_hist[-1]} vs tolerance of :{TOLERANCE} \n")
-    #     else:
-    #         print(f"Reached tolerance after {n_iter} iterations of max {MAX_ITER} \n")
-
-    #     u = np.fromfile(file, dtype=np.float64).reshape(N, N, N)
-
-    #     if PLOT:
-    #         plot_convergence(convergence_hist, TOLERANCE, title=f"parallel/Jacobi sendrecv convergence, N = {N}, size = {size}", every=10)
-    #         pts = np.linspace(-1, 1, N + 2)[1:-1]
-    #         plot_slice_vs_analytical(u, pts, z=0.5, title=f"parallel/Jacobi sendrecv, N = {N}, size = {size}, {n_iter} iterations")
-
-
-
 
 def write_results_to_file(comm, u_curr, SOLUTION_PATH):
     u_write = np.ascontiguousarray(u_curr[1:-1, 1:-1, 1:-1])
@@ -67,7 +50,7 @@ def write_results_to_file(comm, u_curr, SOLUTION_PATH):
     fh.Close()
 
 
-def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
+def main(N, MAX_ITER, TOLERANCE, INIT_VALUE):
     ### 1. INITIALIZATION
     initialization_time = perf_counter()
 
@@ -92,29 +75,28 @@ def main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH):
     LHS_dt.Commit()
     RHS_dt.Commit()
 
-    initialization_time = np.array([perf_counter() - initialization_time])
 
 
     ### 2. JACOBI COMPUTATION 
     jacobi_time = perf_counter()
 
-    u_curr, convergence_hist, i, flops, lups = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=cart_comm)
+    u_curr, convergence_hist, i, flops, lops, t_comm = solve_slice(N=N, N_slice=N_slice, slice_idx = slice_idx, max_iter=MAX_ITER, tolerance=TOLERANCE, init_value=INIT_VALUE, rank=rank, size=size, u_curr=u_initial_slice, LHS_dt=LHS_dt, RHS_dt=RHS_dt, comm=cart_comm)
     LHS_dt.Free()
     RHS_dt.Free()
 
     jacobi_time = np.array([perf_counter() - jacobi_time])
 
  
-    ### 3. WRITING RESULTS TO FILE
-    fileWriting_time = perf_counter()
+    # ### 3. WRITING RESULTS TO FILE
+    # fileWriting_time = perf_counter()
 
-    write_results_to_file(comm, u_curr, SOLUTION_PATH)
-    comm.Barrier()
+    # write_results_to_file(comm, u_curr, SOLUTION_PATH)
+    # comm.Barrier()
 
-    fileWriting_time = np.array([perf_counter() - fileWriting_time])
+    # fileWriting_time = np.array([perf_counter() - fileWriting_time])
 
 
-    return rank, comm, size, u_curr, i, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time
+    return rank, comm, size, u_curr, i, flops, lops, convergence_hist, jacobi_time, t_comm
 
 
 
@@ -127,62 +109,50 @@ if __name__ == "__main__":
     PLOT = True
 
     # Get run parameters from the command line
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, SOLUTION_PATH = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, CSV_PATH, DECOMB_DIM, DECOMB_AXES = get_run_parameters()
 
     # Main
     t0 = perf_counter()
-    rank, comm, n_ranks, u, n_iterations, flops, lups, convergence_hist, initialization_time, jacobi_time, fileWriting_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE, SOLUTION_PATH)
-    total_time = np.array([perf_counter() - t0])
+    rank, comm, n_ranks, u, n_iterations, flops, lops, convergence_hist, total_time, comm_time = main(N, MAX_ITER, TOLERANCE, INIT_VALUE)
 
 
 
     # Rank 0 gathers data from all ranks
-    if rank == 0:
-        initialization_time_array = np.zeros(n_ranks, dtype = np.float64)
-        jacobi_time_array         = np.zeros(n_ranks, dtype = np.float64)
-        fileWriting_time_array    = np.zeros(n_ranks, dtype = np.float64)
-        total_time_array          = np.zeros(n_ranks, dtype = np.float64)
-        flops_array               = np.zeros(n_ranks, dtype = np.float64)
-        lups_array                = np.zeros(n_ranks, dtype = np.float64)
+    total_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    all_niter = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    flops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    lops_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
+    comm_time_array = np.zeros(n_ranks, dtype=np.float64) if rank == 0 else None
 
-    else:
-        initialization_time_array, jacobi_time_array, fileWriting_time_array, total_time_array = None, None, None, None
-        flops_array, lups_array = None, None
-
-    comm.Gather(initialization_time, initialization_time_array, root = 0)
-    comm.Gather(jacobi_time,         jacobi_time_array,         root = 0)
-    comm.Gather(fileWriting_time,    fileWriting_time_array,    root = 0)
-    comm.Gather(total_time,          total_time_array,          root = 0)
-    comm.Gather(flops,               flops_array,               root = 0)
-    comm.Gather(lups,                lups_array,                root = 0)
-
+    comm.Gather(np.array([total_time], dtype=np.float64), total_time_array, root=0)
+    comm.Gather(np.array([n_iterations], dtype=np.float64), all_niter, root=0)
+    comm.Gather(np.array([flops], dtype=np.float64), flops_array, root=0)
+    comm.Gather(np.array([lops], dtype=np.float64), lops_array, root=0)
+    comm.Gather(np.array([comm_time], dtype=np.float64), comm_time_array, root=0)
+    
 
     # Rank 0 saves all the data in a csv
     if rank == 0:
-        RUN_TYPE = script_name = Path(__file__).stem
+        jacobi_time_array = total_time_array - comm_time_array
+        RUN_TYPE = Path(__file__).stem
         RUN_ID   = os.environ.get("RUN_ID", "manual-run")
 
-        if PLOT:
-            handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, SOLUTION_PATH, N)
+        #if PLOT:
+        #    handle_plots(convergence_hist, TOLERANCE, MAX_ITER, n_ranks, N)
 
-        is_valid =  save_and_validate_results(
-            matrix = u, 
+        is_valid =  save_and_validate_results( 
             csv_path = CSV_PATH, 
             run_type = RUN_TYPE, 
             run_id = RUN_ID, 
             n_ranks = n_ranks, 
-            chunk_size = 0, 
             N = N, 
             max_iter = MAX_ITER, 
             n_iterations = n_iterations, 
             tolerance = TOLERANCE, 
             init_value = INIT_VALUE, 
-            initialization_time = initialization_time_array, 
             jacobi_time = jacobi_time_array,
-            fileWriting_time = fileWriting_time_array, 
-            total_time = total_time_array,
+            comm_time = comm_time_array,
             flops = flops_array,
-            lups = lups_array
-
+            lups = lops_array
         )
         

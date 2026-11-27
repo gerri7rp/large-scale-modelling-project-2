@@ -7,35 +7,14 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, so utils is importable
 from utils.plotting import plot_convergence, plot_slice_vs_analytical
-from utils.benchmark import save_and_validate_results, validate_result
-
+from utils.benchmark import save_and_validate_results
+from utils.tools import get_run_parameters
 
 N = 300
 MAX_ITER = 10000
 TOLERANCE = 10e-6
 INIT_VALUE = 10
 PLOT = False
-
-def get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path=None):
-    argv = sys.argv[1:]
-    if argv:
-        N = int(argv.pop(0))
-    if argv:
-        MAX_ITER = int(argv.pop(0))
-    if argv:
-        TOLERANCE = float(argv.pop(0))
-    if argv:
-        INIT_VALUE = int(argv.pop(0))
-    if argv:
-        PLOT = argv.pop(0).lower() in ("true", "1", "yes")  # bool("False") would be True
-    if argv:
-        csv_path = Path(argv.pop(0))
-    if argv:
-        solution_path = Path(argv.pop(0))
-
-    return N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path
-
-
 
 def source(N):
     # Interior points of [-1, 1] with N+2 points including the boundary
@@ -106,32 +85,25 @@ if __name__ == "__main__":
 
 
 
-    RUN_TYPE = script_name = Path(__file__).stem
+    RUN_TYPE = Path(__file__).stem
     RUN_ID   = os.environ.get("RUN_ID", "manual-run")
     n_ranks = 1
-    chunk_size = 0
-
-    is_valid =  save_and_validate_results(
-        matrix = u, 
-        csv_path = csv_path, 
-        run_type = RUN_TYPE, 
-        run_id = RUN_ID, 
-        n_ranks = n_ranks, 
-        chunk_size = 0, 
-        N = N, 
-        max_iter = MAX_ITER, 
-        n_iterations = i, 
-        tolerance = TOLERANCE, 
-        init_value = INIT_VALUE, 
-        initialization_time = [0], 
-        jacobi_time = [0],
-        fileWriting_time = [0], 
-        total_time = total_time_array,
-        flops = [0],
-        lups = [0]
-
+    
+    _, _ = save_and_validate_results(
+        csv_path=csv_path,
+        run_type=RUN_TYPE,
+        run_id=RUN_ID,
+        n_ranks=n_ranks,
+        N=N,
+        max_iter=MAX_ITER,
+        n_iterations=i + 1,
+        tolerance=TOLERANCE,
+        init_value=INIT_VALUE,
+        jacobi_time=total_time_array,
+        comm_time=np.zeros(n_ranks),
+        flops=None,
+        lups=None,
     )
 
-
-    #if not is_valid:
-    #    print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")
+    # if not is_valid:
+    #     print("\n\nTHE RESULTS OF THE RUN ARE NOT CORRECT!!\n\n")
