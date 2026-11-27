@@ -67,7 +67,7 @@ def solve(N, max_iter, tolerance, init_value):
 
 
 if __name__ == "__main__":
-    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, solution_path = get_run_parameters(N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT)
+    N, MAX_ITER, TOLERANCE, INIT_VALUE, PLOT, csv_path, DECOMB_DIM, DECOMB_AXES = get_run_parameters()
     total_time_array = time.time()
     u, convergence_hist, i = solve(N, MAX_ITER, TOLERANCE, INIT_VALUE)
     total_time_array = np.array([time.time() - total_time_array])
