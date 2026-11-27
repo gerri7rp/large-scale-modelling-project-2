@@ -21,6 +21,7 @@ module load mpi4py/4.0.3-python-3.12.11-openmpi-5.0.8
 # IMPLEMENTATIONS
 # --------------------------------------------------
 IMPLEMENTATIONS=(
+    sendrecv_implementation.py,
     hybrid_decomb.py
 )
 
