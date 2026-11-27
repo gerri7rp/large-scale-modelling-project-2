@@ -57,7 +57,7 @@ echo "Solution path:  $SOLUTION_PATH"
 # RUN
 # --------------------------------------------------
 mpirun -np "$NP" // "$CPU_PER_RANK" python3 "$FILE_PATH" \
-    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH" "$SOLUTION_PATH" "$CPU_PER_RANK"
+    "$N" "$MAX_ITER" "$TOLERANCE" "$INIT_VALUE" "$PLOT" "$CSV_PATH" "$DECOMB_DIM" "$DECOMB_AXES" "$CPU_PER_RANK"
 
 STATUS=$?
 

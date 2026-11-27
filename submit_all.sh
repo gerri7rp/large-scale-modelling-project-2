@@ -104,13 +104,16 @@ for script in "${IMPLEMENTATIONS[@]}"; do
                             echo "  Plot:           $plot"
                             echo "  Output:         $CSV_PATH"
 
+                            DECOMB_DIM=0
+                            DECOMB_AXES=0,0
+
                             bsub \
                                 -J "numerical" \
                                 -n "$np" \
                                 -R "span[ptile=24]" \
                                 -oo "${LOG_DIR}/${LOG_NAME}.out" \
                                 -eo "${LOG_DIR}/${LOG_NAME}.err" \
-                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME,SOLUTION_PATH=$SOLUTION_PATH,CPU_PER_RANK=$CPU_PER_RANK" \
+                                -env "SCRIPT_NAME=$script,NP=$np,N=$n,MAX_ITER=$max_iter,TOLERANCE=$tolerance,INIT_VALUE=$init_value,PLOT=$plot,RUN_ID=$RUN_ID,CSV_NAME=$CSV_NAME,SOLUTION_PATH=$SOLUTION_PATH,DECOMB_DIM=$DECOMB_DIM,DECOMB_AXES=$DECOMB_AXES,CPU_PER_RANK=$CPU_PER_RANK" \
                                 < job.sh
 
                             if [ $? -eq 0 ]; then
