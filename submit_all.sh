@@ -21,30 +21,29 @@ module load mpi4py/4.0.3-python-3.12.11-openmpi-5.0.8
 # IMPLEMENTATIONS
 # --------------------------------------------------
 IMPLEMENTATIONS=(
-    sequential.py
+    sendrecv_implementation.py
 )
 
 # --------------------------------------------------
 # PARAMETERS
 # --------------------------------------------------
 ### FOR WEAK
-PROCESS_COUNTS=(1) #1 2 4 8 12 16 24 32 48 
-N_VALUES=()
-for p in "${PROCESS_COUNTS[@]}"; do
-    N_VALUES+=("$(python3 -c "print(round(300 * $p ** (1/3)))")")
-done
+# PROCESS_COUNTS=(1 2 4 8) # 12 16 24 32 48 72)
+# N_VALUES=()
+# for p in "${PROCESS_COUNTS[@]}"; do
+#     N_VALUES+=("$(python3 -c "print(round(300 * $p ** (1/3)))")")
+# done
 
 ### FOR STRONG
-# PROCESS_COUNTS=(1 2 3 4 8 12 16 24 32)
-# STRONG_N=96
-# N_VALUES=()   # same N for every process count
-# for p in "${PROCESS_COUNTS[@]}"; do
-#     N_VALUES+=("$STRONG_N")
-# done
-###
+PROCESS_COUNTS=(1 2 4 8)
+STRONG_N=300
+N_VALUES=()   # same N for every process count
+for p in "${PROCESS_COUNTS[@]}"; do
+    N_VALUES+=("$STRONG_N")
+done
 
 
-MAX_ITER_VALUES=(50 100 200 300 400)
+MAX_ITER_VALUES=(400)
 TOLERANCE_VALUES=(10e-15)
 INIT_VALUE_VALUES=(0)
 PLOT_VALUES=(False)
